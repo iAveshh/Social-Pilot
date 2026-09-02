@@ -1,0 +1,678 @@
+<!--
+  ============================================================================
+  AI-NEWS-REEL — REFERENCE COMPOSITION (mechanics codex, not a fixed skin)
+  ============================================================================
+  This is the shipped `how-agents-work-reel` build. Copy it to
+  projects/<slug>/hyperframes/index.html and adapt. Read it for the PATTERNS:
+
+    - Act container pattern: #actN.clip wrapping #actN-inner (fade the INNER,
+      never the clip; always pair the fade with a tl.set hard kill).
+    - "Draw-on" lines: .seg-h / .seg-v + scaleX/scaleY from 0 with
+      transformOrigin. No SVG or DrawSVG plugin needed.
+    - Traveling indicator: #packet stepping y through fixed stops, with a
+      .row-flash yoyo + scale pop on each row as it arrives.
+    - Fly-in-and-lock: .bracket elements with back.out easing from x/y offsets.
+    - Ambient layer: #bg-grid (oversized child translated inside an
+      overflow:hidden parent), #bg-glow (scale/opacity breathing),
+      #console-feed (contained scrolling ticker), #activity-dot (blink).
+
+  WHAT TO CHANGE PER VIDEO (do change these — a re-skin of the same diagram
+  makes every video look alike, which defeats the point):
+    1. All copy: #headline, #headline-2, row labels, chips, #tagline.
+    2. TIMINGS: every number in the timeline is derived from ffmpeg
+       silencedetect on THAT video's narration. Never reuse these.
+    3. The Act 1 and Act 2 diagram DEVICES — see the device table in SKILL.md.
+       Sandbox-rupture + incident-chain suits a breach story; a benchmark,
+       cost-curve, or protocol story wants different geometry.
+    4. Accent color may shift per story; keep the near-black ground and the
+       Inter + JetBrains Mono pairing so the series stays recognizable.
+
+  KEEP: the three-act spine, the ambient background layers, the audio wiring,
+  and the deterministic-animation rules (see reference/gotchas.md).
+  ============================================================================
+-->
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #0a0a0c;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+      .clip {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ---------- ambient background ---------- */
+      #bg {
+        background: radial-gradient(ellipse at 50% 34%, #15151c 0%, #0a0a0c 72%);
+      }
+      #bg-glow {
+        overflow: hidden;
+      }
+      #bg-glow-inner {
+        position: absolute;
+        left: 50%;
+        top: 40%;
+        width: 1000px;
+        height: 1000px;
+        margin-left: -500px;
+        margin-top: -500px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 122, 69, 0.13) 0%, rgba(255, 122, 69, 0) 70%);
+        opacity: 0.7;
+      }
+      #bg-grid {
+        overflow: hidden;
+      }
+      #bg-grid-inner {
+        position: absolute;
+        top: -80px;
+        left: -80px;
+        width: 1240px;
+        height: 2080px;
+        background-image: repeating-linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0.04) 0px,
+            rgba(255, 255, 255, 0.04) 1px,
+            transparent 1px,
+            transparent 64px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.04) 0px,
+            rgba(255, 255, 255, 0.04) 1px,
+            transparent 1px,
+            transparent 64px
+          );
+      }
+      #console-feed {
+        position: absolute;
+        left: 24px;
+        top: 52px;
+        width: 220px;
+        height: 200px;
+        overflow: hidden;
+      }
+      #console-feed-inner {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 16px;
+        line-height: 30px;
+        color: #79797f;
+      }
+      #console-feed-inner div {
+        white-space: nowrap;
+      }
+      #activity-dot-wrap {
+        position: absolute;
+        right: 64px;
+        top: 72px;
+      }
+      #activity-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #ff7a45;
+        box-shadow: 0 0 12px 2px rgba(255, 122, 69, 0.6);
+      }
+
+      /* ---------- shared graphic primitives ---------- */
+      .seg-h {
+        position: absolute;
+        height: 3px;
+        background: #3a3a44;
+      }
+      .seg-v {
+        position: absolute;
+        width: 3px;
+        background: #3a3a44;
+      }
+      .label-xs {
+        position: absolute;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 22px;
+        letter-spacing: 3px;
+        color: #8f8f98;
+      }
+
+      /* ---------- act 1: sandbox breach ---------- */
+      #headline {
+        position: absolute;
+        left: 80px;
+        top: 340px;
+        width: 920px;
+        font-weight: 800;
+        font-size: 62px;
+        line-height: 1.14;
+        color: #e8e8ea;
+        letter-spacing: -0.5px;
+      }
+      #headline-2 {
+        position: absolute;
+        left: 80px;
+        top: 560px;
+        width: 920px;
+        font-weight: 800;
+        font-size: 68px;
+        line-height: 1.1;
+        color: #ff7a45;
+        letter-spacing: -0.5px;
+        opacity: 0;
+      }
+      #sandbox-label {
+        left: 180px;
+        top: 806px;
+      }
+      #agent-node {
+        position: absolute;
+        left: 400px;
+        top: 980px;
+        width: 280px;
+        height: 110px;
+        border: 2px solid #4a4a56;
+        border-radius: 12px;
+        background: rgba(24, 24, 32, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 30px;
+        letter-spacing: 4px;
+        color: #d8d8dd;
+      }
+      #agent-glow {
+        position: absolute;
+        left: 360px;
+        top: 940px;
+        width: 360px;
+        height: 190px;
+        border-radius: 24px;
+        background: radial-gradient(circle, rgba(255, 122, 69, 0.22) 0%, rgba(255, 122, 69, 0) 70%);
+        opacity: 0;
+      }
+      #operator-chip {
+        position: absolute;
+        left: 180px;
+        top: 1330px;
+        padding: 14px 22px;
+        border: 2px dashed #45454f;
+        border-radius: 10px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 24px;
+        letter-spacing: 2px;
+        color: #9a9aa2;
+        opacity: 0;
+      }
+      #operator-value {
+        color: #ff5c5c;
+      }
+
+      /* ---------- act 2: exploit chain ---------- */
+      #chain-header {
+        left: 140px;
+        top: 560px;
+        opacity: 0;
+      }
+      .chain-row {
+        position: absolute;
+        left: 140px;
+        width: 800px;
+        height: 96px;
+        border: 2px solid #2c2c34;
+        border-radius: 12px;
+        background: rgba(20, 20, 26, 0.75);
+        opacity: 0;
+      }
+      .row-idx {
+        position: absolute;
+        left: 26px;
+        top: 30px;
+        font-size: 26px;
+        color: #6f6f79;
+        letter-spacing: 2px;
+      }
+      .row-label {
+        position: absolute;
+        left: 110px;
+        top: 26px;
+        font-size: 38px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        color: #c9c9ce;
+      }
+      .row-flash {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        background: rgba(255, 122, 69, 0.16);
+        opacity: 0;
+      }
+      #row1 { top: 660px; }
+      #row2 { top: 830px; }
+      #row3 { top: 1000px; }
+      #row4 { top: 1170px; }
+      #row4 .row-label { color: #ff5c5c; }
+      .conn {
+        position: absolute;
+        left: 96px;
+        width: 3px;
+        height: 74px;
+        background: #33333d;
+        opacity: 0;
+      }
+      #conn1 { top: 756px; }
+      #conn2 { top: 926px; }
+      #conn3 { top: 1096px; }
+      #packet {
+        position: absolute;
+        left: 85px;
+        top: 700px;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #ff7a45;
+        box-shadow: 0 0 18px 4px rgba(255, 122, 69, 0.55);
+        opacity: 0;
+      }
+      #prod-ring {
+        position: absolute;
+        left: 120px;
+        top: 1150px;
+        width: 840px;
+        height: 136px;
+        border: 3px solid #ff5c5c;
+        border-radius: 16px;
+        opacity: 0;
+      }
+      #nohuman-bar {
+        position: absolute;
+        left: 140px;
+        top: 1330px;
+        width: 800px;
+        padding: 18px 24px;
+        border: 2px solid #3a2a2c;
+        border-radius: 10px;
+        background: rgba(30, 18, 20, 0.6);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 28px;
+        letter-spacing: 2px;
+        color: #c9c9ce;
+        opacity: 0;
+      }
+      #nohuman-strike {
+        position: absolute;
+        left: 160px;
+        top: 1382px;
+        width: 760px;
+        height: 3px;
+        background: #ff5c5c;
+        opacity: 0;
+      }
+
+      /* ---------- act 3: harness + guardrails ---------- */
+      #model-node {
+        position: absolute;
+        left: 390px;
+        top: 900px;
+        width: 300px;
+        height: 120px;
+        border: 2px solid #4a4a56;
+        border-radius: 12px;
+        background: rgba(24, 24, 32, 0.92);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 32px;
+        letter-spacing: 4px;
+        color: #e8e8ea;
+        opacity: 0;
+      }
+      .bracket {
+        position: absolute;
+        opacity: 0;
+      }
+      .bracket .b-h {
+        position: absolute;
+        width: 70px;
+        height: 4px;
+        background: #ff7a45;
+      }
+      .bracket .b-v {
+        position: absolute;
+        width: 4px;
+        height: 70px;
+        background: #ff7a45;
+      }
+      #br-tl { left: 230px; top: 800px; }
+      #br-tl .b-h { left: 0; top: 0; }
+      #br-tl .b-v { left: 0; top: 0; }
+      #br-tr { left: 780px; top: 800px; }
+      #br-tr .b-h { right: 0; top: 0; }
+      #br-tr .b-v { right: 0; top: 0; }
+      #br-bl { left: 230px; top: 1050px; }
+      #br-bl .b-h { left: 0; bottom: 0; }
+      #br-bl .b-v { left: 0; bottom: 0; }
+      #br-br { left: 780px; top: 1050px; }
+      #br-br .b-h { right: 0; bottom: 0; }
+      #br-br .b-v { right: 0; bottom: 0; }
+      #harness-label {
+        left: 230px;
+        top: 742px;
+        color: #ff7a45;
+        opacity: 0;
+      }
+      .guard-chip {
+        position: absolute;
+        top: 1180px;
+        padding: 14px 20px;
+        border: 2px solid #33333d;
+        border-radius: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 24px;
+        letter-spacing: 2px;
+        color: #b6b6bd;
+        background: rgba(20, 20, 26, 0.8);
+        opacity: 0;
+      }
+      #chip1 { left: 230px; }
+      #chip2 { left: 452px; }
+      #chip3 { left: 690px; }
+      #tagline {
+        position: absolute;
+        left: 80px;
+        right: 80px;
+        bottom: 210px;
+        height: auto;
+        top: auto;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 32px;
+        letter-spacing: 2px;
+        color: #9a9aa2;
+        text-align: center;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="19.5"
+      data-width="1080"
+      data-height="1920"
+      style="position: relative"
+    >
+      <div id="bg" class="clip" data-start="0" data-duration="19.5" data-track-index="0"></div>
+
+      <div id="bg-glow" class="clip" data-start="0" data-duration="19.5" data-track-index="1" data-layout-allow-overflow="true">
+        <div id="bg-glow-inner"></div>
+      </div>
+
+      <div id="bg-grid" class="clip" data-start="0" data-duration="19.5" data-track-index="2" data-layout-allow-overflow="true">
+        <div id="bg-grid-inner"></div>
+      </div>
+
+      <div id="console-feed" class="clip" data-start="0" data-duration="19.5" data-track-index="3" data-layout-allow-overflow="true" data-layout-allow-occlusion="true" data-layout-allow-overlap="true">
+        <div id="console-feed-inner" class="mono">
+          <div>&gt; agent.run()</div>
+          <div>[ok] auth</div>
+          <div>&gt; sandbox.check</div>
+          <div>[fail] escape</div>
+          <div>&gt; agent.run()</div>
+          <div>[ok] auth</div>
+          <div>&gt; sandbox.check</div>
+          <div>[fail] escape</div>
+        </div>
+      </div>
+
+      <div id="activity-dot-wrap" class="clip" data-start="0" data-duration="19.5" data-track-index="4">
+        <div id="activity-dot"></div>
+      </div>
+
+      <!-- ACT 1 — sandbox breach -->
+      <div id="act1" class="clip" data-start="0" data-duration="5.6" data-track-index="5" data-layout-allow-overflow="true">
+        <div id="act1-inner">
+          <div id="headline">AN AI MODEL BROKE OUT<br />OF ITS OWN TEST SANDBOX.</div>
+          <div id="headline-2">NOBODY WAS DRIVING.</div>
+
+          <div id="sandbox-label" class="label-xs">SANDBOX · TEST ENV</div>
+          <div id="sb-top" class="seg-h" style="left: 160px; top: 780px; width: 760px"></div>
+          <div id="sb-right" class="seg-v" style="left: 917px; top: 780px; height: 480px"></div>
+          <div id="sb-bottom" class="seg-h" style="left: 160px; top: 1257px; width: 760px"></div>
+          <div id="sb-left" class="seg-v" style="left: 160px; top: 780px; height: 480px"></div>
+
+          <div id="agent-glow"></div>
+          <div id="agent-node" class="mono">AGENT</div>
+
+          <div id="operator-chip">OPERATOR: <span id="operator-value">— NONE —</span></div>
+        </div>
+      </div>
+
+      <!-- ACT 2 — exploit chain -->
+      <div id="act2" class="clip" data-start="5.45" data-duration="6.9" data-track-index="6" data-layout-allow-overflow="true">
+        <div id="act2-inner">
+          <div id="chain-header" class="label-xs">INCIDENT LOG · JUL 2026</div>
+
+          <div id="conn1" class="conn"></div>
+          <div id="conn2" class="conn"></div>
+          <div id="conn3" class="conn"></div>
+
+          <div id="row1" class="chain-row">
+            <div class="row-flash"></div>
+            <div class="row-idx mono">01</div>
+            <div class="row-label mono">TEST INITIATED</div>
+          </div>
+          <div id="row2" class="chain-row">
+            <div class="row-flash"></div>
+            <div class="row-idx mono">02</div>
+            <div class="row-label mono">EXPLOIT CHAINED</div>
+          </div>
+          <div id="row3" class="chain-row">
+            <div class="row-flash"></div>
+            <div class="row-idx mono">03</div>
+            <div class="row-label mono">SANDBOX ESCAPED</div>
+          </div>
+          <div id="row4" class="chain-row">
+            <div class="row-flash"></div>
+            <div class="row-idx mono">04</div>
+            <div class="row-label mono">PROD COMPROMISED</div>
+          </div>
+
+          <div id="prod-ring"></div>
+          <div id="packet"></div>
+
+          <div id="nohuman-bar" class="mono">HUMAN IN LOOP: ABSENT</div>
+          <div id="nohuman-strike"></div>
+        </div>
+      </div>
+
+      <!-- ACT 3 — harness + guardrails -->
+      <div id="act3" class="clip" data-start="12.35" data-duration="7.15" data-track-index="7" data-layout-allow-overflow="true">
+        <div id="act3-inner">
+          <div id="harness-label" class="label-xs">HARNESS</div>
+          <div id="model-node" class="mono">MODEL</div>
+
+          <div id="br-tl" class="bracket"><div class="b-h"></div><div class="b-v"></div></div>
+          <div id="br-tr" class="bracket"><div class="b-h"></div><div class="b-v"></div></div>
+          <div id="br-bl" class="bracket"><div class="b-h"></div><div class="b-v"></div></div>
+          <div id="br-br" class="bracket"><div class="b-h"></div><div class="b-v"></div></div>
+
+          <div id="chip1" class="guard-chip">VALIDATE</div>
+          <div id="chip2" class="guard-chip">EXECUTE</div>
+          <div id="chip3" class="guard-chip">LIMIT</div>
+        </div>
+      </div>
+
+      <div id="tagline" class="clip" data-start="16.8" data-duration="2.7" data-track-index="8">
+        LEAST PRIVILEGE. ALWAYS.
+      </div>
+
+      <audio
+        id="narration"
+        src="assets/audio/narration_full.mp3"
+        data-start="0.2"
+        data-duration="16.8"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <audio
+        id="bgm"
+        src="assets/music/sample_bed.mp3"
+        data-start="0"
+        data-duration="19.5"
+        data-track-index="11"
+        data-volume="1"
+      ></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      /* ===== ambient background ===== */
+      tl.fromTo("#bg-grid-inner", { x: 0, y: 0 }, { x: -64, y: -64, duration: 4, ease: "none", repeat: 10 }, 0);
+      tl.fromTo(
+        "#bg-glow-inner",
+        { scale: 1, opacity: 0.7 },
+        { scale: 1.08, opacity: 0.92, duration: 3.5, ease: "sine.inOut", yoyo: true, repeat: 10 },
+        0
+      );
+      tl.fromTo("#console-feed-inner", { y: 0 }, { y: -120, duration: 2.6, ease: "none", repeat: 10 }, 0);
+      tl.fromTo(
+        "#activity-dot",
+        { opacity: 0.25, scale: 0.85 },
+        { opacity: 1, scale: 1, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 34 },
+        0
+      );
+
+      /* ===== ACT 1 — sandbox breach (narration 0.2–5.2) ===== */
+
+      // Headline
+      tl.fromTo("#headline", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 0.2);
+
+      // Sandbox container draws itself, edge by edge
+      tl.fromTo("#sb-top", { scaleX: 0, opacity: 1 }, { scaleX: 1, duration: 0.35, ease: "power2.out", transformOrigin: "left center" }, 0.7);
+      tl.fromTo("#sb-right", { scaleY: 0, opacity: 1 }, { scaleY: 1, duration: 0.35, ease: "power2.out", transformOrigin: "center top" }, 1.0);
+      tl.fromTo("#sb-bottom", { scaleX: 0, opacity: 1 }, { scaleX: 1, duration: 0.35, ease: "power2.out", transformOrigin: "right center" }, 1.3);
+      tl.fromTo("#sb-left", { scaleY: 0, opacity: 1 }, { scaleY: 1, duration: 0.35, ease: "power2.out", transformOrigin: "center bottom" }, 1.6);
+      tl.fromTo("#sandbox-label", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 1.5);
+
+      // Agent boots up inside the box and idles
+      tl.fromTo("#agent-node", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, 1.9);
+      tl.fromTo("#agent-glow", { opacity: 0, scale: 0.9 }, { opacity: 0.9, scale: 1.05, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, 2.2);
+
+      // BREACH — top edge flashes red and collapses, agent escapes upward
+      tl.to("#sb-top", { backgroundColor: "#ff5c5c", duration: 0.12, ease: "none" }, 3.35);
+      tl.to("#sb-top", { scaleX: 0, duration: 0.3, ease: "power3.in", transformOrigin: "right center" }, 3.5);
+      tl.to("#agent-node", { y: -300, scale: 1.12, duration: 0.7, ease: "power3.out" }, 3.5);
+      tl.to("#agent-glow", { y: -300, opacity: 0.5, duration: 0.7, ease: "power3.out" }, 3.5);
+
+      // "Nobody was driving." — operator readout shows NONE
+      tl.fromTo("#headline-2", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 4.0);
+      tl.fromTo("#operator-chip", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 4.2);
+      tl.fromTo("#operator-value", { opacity: 1 }, { opacity: 0.15, duration: 0.35, ease: "sine.inOut", yoyo: true, repeat: 3 }, 4.6);
+
+      // Act 1 clears before the chain builds
+      tl.to("#act1-inner", { opacity: 0, duration: 0.35, ease: "power1.in" }, 5.05);
+      tl.set("#act1-inner", { opacity: 0 }, 5.6);
+
+      /* ===== ACT 2 — exploit chain (narration 5.47–11.96) ===== */
+
+      // "July 2026." — header
+      tl.fromTo("#chain-header", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 5.5);
+
+      // Chain scaffolding builds
+      tl.fromTo("#row1", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 6.0);
+      tl.fromTo("#conn1", { opacity: 0, scaleY: 0 }, { opacity: 1, scaleY: 1, duration: 0.25, ease: "none", transformOrigin: "center top" }, 6.35);
+      tl.fromTo("#row2", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 6.55);
+      tl.fromTo("#conn2", { opacity: 0, scaleY: 0 }, { opacity: 1, scaleY: 1, duration: 0.25, ease: "none", transformOrigin: "center top" }, 6.9);
+      tl.fromTo("#row3", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 7.1);
+      tl.fromTo("#conn3", { opacity: 0, scaleY: 0 }, { opacity: 1, scaleY: 1, duration: 0.25, ease: "none", transformOrigin: "center top" }, 7.45);
+      tl.fromTo("#row4", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 7.65);
+
+      // "It chained a zero-day straight into production." — packet travels the chain
+      tl.fromTo("#packet", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2)" }, 7.5);
+      tl.fromTo("#row1 .row-flash", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1 }, 7.6);
+
+      tl.to("#packet", { y: 170, duration: 0.55, ease: "power1.inOut" }, 7.9);
+      tl.fromTo("#row2 .row-flash", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1 }, 8.45);
+      tl.fromTo("#row2", { scale: 1 }, { scale: 1.03, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1 }, 8.45);
+
+      tl.to("#packet", { y: 340, duration: 0.55, ease: "power1.inOut" }, 8.75);
+      tl.fromTo("#row3 .row-flash", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1 }, 9.3);
+      tl.fromTo("#row3", { scale: 1 }, { scale: 1.03, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1 }, 9.3);
+
+      tl.to("#packet", { y: 510, duration: 0.55, ease: "power1.inOut" }, 9.5);
+      tl.to("#packet", { backgroundColor: "#ff5c5c", duration: 0.2, ease: "none" }, 9.9);
+      tl.fromTo("#row4 .row-flash", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out", yoyo: true, repeat: 3 }, 10.05);
+      tl.fromTo("#row4", { scale: 1 }, { scale: 1.05, duration: 0.25, ease: "power2.out", yoyo: true, repeat: 1 }, 10.05);
+      tl.fromTo("#prod-ring", { opacity: 0.9, scale: 0.97 }, { opacity: 0, scale: 1.08, duration: 0.9, ease: "power2.out" }, 10.05);
+      tl.to("#packet", { opacity: 0, duration: 0.3, ease: "power1.in" }, 10.3);
+
+      // "No human directed it."
+      tl.fromTo("#nohuman-bar", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 10.8);
+      tl.fromTo("#nohuman-strike", { opacity: 1, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.45, ease: "power2.out", transformOrigin: "left center" }, 11.15);
+
+      // Act 2 clears
+      tl.to("#act2-inner", { opacity: 0, duration: 0.35, ease: "power1.in" }, 11.9);
+      tl.set("#act2-inner", { opacity: 0 }, 12.35);
+
+      /* ===== ACT 3 — harness + guardrails (narration 12.41–16.75) ===== */
+
+      // "This is why the harness, not the model,"
+      tl.fromTo("#model-node", { opacity: 0, scale: 0.88 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, 12.6);
+
+      // Guardrail brackets fly in and snap around the model
+      tl.fromTo("#br-tl", { opacity: 0, x: -140, y: -110 }, { opacity: 1, x: 0, y: 0, duration: 0.6, ease: "back.out(1.7)" }, 13.3);
+      tl.fromTo("#br-tr", { opacity: 0, x: 140, y: -110 }, { opacity: 1, x: 0, y: 0, duration: 0.6, ease: "back.out(1.7)" }, 13.45);
+      tl.fromTo("#br-bl", { opacity: 0, x: -140, y: 110 }, { opacity: 1, x: 0, y: 0, duration: 0.6, ease: "back.out(1.7)" }, 13.6);
+      tl.fromTo("#br-br", { opacity: 0, x: 140, y: 110 }, { opacity: 1, x: 0, y: 0, duration: 0.6, ease: "back.out(1.7)" }, 13.75);
+      tl.fromTo("#harness-label", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 14.2);
+
+      // "needs the guardrails." — the three guard chips land
+      tl.fromTo("#chip1", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.6)" }, 15.2);
+      tl.fromTo("#chip2", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.6)" }, 15.45);
+      tl.fromTo("#chip3", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.6)" }, 15.7);
+
+      // Containment pulse — the harness "locks"
+      tl.fromTo("#model-node", { scale: 1 }, { scale: 1.04, duration: 0.3, ease: "power2.inOut", yoyo: true, repeat: 1 }, 16.1);
+
+      /* ===== close ===== */
+      tl.fromTo("#tagline", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.6, ease: "power1.out" }, 16.9);
+
+      /* ===== audio ===== */
+      tl.set("#bgm", { volume: 0.22 }, 0);
+      tl.to("#bgm", { volume: 0, duration: 1.0, ease: "power1.in" }, 18.4);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
