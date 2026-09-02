@@ -157,18 +157,25 @@ ffmpeg -y -i raw.mp4 -an -c:v libx264 -r 30 -g 30 -keyint_min 30 \
 
 ## Cost model (premium tier)
 
+> Costs are written as `USD n.nn` on purpose. A bare dollar-sign followed by a
+> digit gets eaten by argument substitution when this skill is invoked with
+> arguments, which silently corrupted these figures before.
+
 | Line | Cost |
 |---|---|
-| Seedance 2.0 plate, 5s (fal.ai standard T2V @ $0.3034/s) | **$1.52** each |
-| Seedance 2.0 via Higgsfield, per 5s clip | $0.80 each |
-| Narration (~40 words, ElevenLabs) | $0.02 |
-| Music (free search) | $0.00 |
-| Logos, figures, render | $0.00 (local) |
+| Seedance 2.0 plate, 5s (fal.ai standard T2V @ USD 0.3034/s) | **USD 1.52** each |
+| Seedance 2.0 via Higgsfield, per 5s clip | USD 0.80 each |
+| Narration (~40 words, ElevenLabs) | USD 0.02 |
+| Music (free search) | USD 0.00 |
+| Logos, figures, render | USD 0.00 (local) |
 
-**2 plates ≈ $3.05** · **4 plates ≈ $6.10** on fal.ai. To hit a ~$3-4 target,
-either use 2 plates on fal.ai or route to Higgsfield for 4. Announce the
+**2 plates ≈ USD 3.05** · **4 plates ≈ USD 6.10** on fal.ai. To hit a ~USD 3-4
+target, either use 2 plates on fal.ai or route to Higgsfield for 4. Announce the
 provider and per-clip cost before the first paid call, and **generate one plate
 first and look at it** before batching the rest.
+
+Measured on the reference run (`projects/trust-gap-brief/`): 2 plates + one
+re-cut narration = **USD 3.06**.
 
 Not every card needs a plate. Line art, a logo grid, a gauge and a stamp cost
 nothing and carry most of the design's character.
@@ -200,3 +207,13 @@ nothing and carry most of the design's character.
 - **Reveal figures during the card draw-in**, not on the camera visit —
   otherwise the opening wide shot shows a grid of empty cards. Save a distinct
   *emphasis* beat (ping, roll-through, sweep, slam) for the visit.
+- **Set `data-media-start` when the plate's payoff is late in the clip.** A 5s
+  generation whose subject only resolves at 2-4s, shown in a 3s window, plays
+  its boring first half and the payoff never appears. Check where the action
+  actually lands in the raw clip and offset into it.
+- **Restore the masthead only once the camera is nearly back to WIDE.** Fading
+  it in while the board is still scaling out puts the title on top of a
+  magnified card. Give the pull-back ~0.9s and start the fade near its end.
+- **Rotating a needle trips a `rotation_pivot_drift` warning** while the parent
+  camera is also moving. Harmless for a gauge pivoting at `50% 100%`, and it
+  clears once the camera settles.
