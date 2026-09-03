@@ -57,6 +57,24 @@ folio           SUBJECT ............ SHEET 01 / 01
 Headlines are **declarative and end in a period** — "One Protocol." "Industry
 Default." That full stop is part of the voice.
 
+### Length: one sheet, or two
+
+Four cards carry roughly 20-30s. Past that the camera dwells too long on each
+and the piece goes static. **For 45-70s, use two sheets of four.**
+
+Author `#sheet1` and `#sheet2` as siblings absolutely positioned in the *same*
+board slot (`.sheet { position:absolute; left:0; top:0 }`, `#sheet2` starting at
+`opacity:0`) and cross-fade between them. Every camera stop is then reused
+unchanged for the second sheet — no new transform math.
+
+Sell the turn: swap the sheet on a narration line that marks a real pivot in the
+story, retitle the masthead, and flip the folio to `SHEET 02 / 02`. Do the swap
+**on a wide shot** with the frame furniture visible, so the viewer sees the page
+turn rather than a cut. Reference run: `projects/gemini-38-flash-brief/`
+(62s, 8 cards, swap at 31.8s on "Then there's the cyber variant").
+
+Card numbering runs straight through both sheets — `FIG. 01` to `FIG. 08`.
+
 ## Motion vocabulary
 
 The design is static-looking by nature; these five moves make it move.
@@ -146,6 +164,14 @@ No text, no logos, no lettering, no people, no 3D, no cartoon, no VFX aesthetic.
 `No text, no logos, no lettering` is load-bearing — generated lettering always
 looks wrong, and real logos are supplied as vector instead.
 
+**Security and failure topics trip the content filter.** A plate prompt for a
+vulnerability-discovery card ("a hairline fracture creeping across a surface")
+came back `422 Unprocessable Entity` from the provider, while structurally
+identical prompts on neutral subjects passed. Describe the *instrument*, not the
+damage: a magnifier travelling over machined grooves reads as "discovery"
+without naming a flaw; solder flowing into a seam reads as "patching" without
+naming a breach. Budget one retry, and reword rather than resubmit.
+
 With reference images supplied, use image-to-video / reference-to-video
 conditioning instead of pure text-to-video.
 
@@ -174,8 +200,13 @@ target, either use 2 plates on fal.ai or route to Higgsfield for 4. Announce the
 provider and per-clip cost before the first paid call, and **generate one plate
 first and look at it** before batching the rest.
 
-Measured on the reference run (`projects/trust-gap-brief/`): 2 plates + one
-re-cut narration = **USD 3.06**.
+Measured on the reference runs:
+- `projects/trust-gap-brief/` — 25.6s, 4 cards, 2 plates = **USD 3.06**
+- `projects/gemini-38-flash-brief/` — 62s, 8 cards, 3 plates = **USD 4.64**
+  (plus one filter-rejected plate that cost nothing but a retry)
+
+Cost tracks plate count, not runtime. A 60s two-sheet brief needs only one more
+plate than a 25s one — the extra four cards are carried by free figures.
 
 Not every card needs a plate. Line art, a logo grid, a gauge and a stamp cost
 nothing and carry most of the design's character.
@@ -217,3 +248,11 @@ nothing and carry most of the design's character.
 - **Rotating a needle trips a `rotation_pivot_drift` warning** while the parent
   camera is also moving. Harmless for a gauge pivoting at `50% 100%`, and it
   clears once the camera settles.
+- **`tl.set(el, { text: "..." })` silently does nothing.** GSAP's TextPlugin is
+  not loaded, so a folio or label that "updates" this way never changes — the
+  render just keeps the original string. `check` reports it only as a console
+  warning, not an error, so it will ship if you ignore warnings. Cross-fade two
+  absolutely-positioned spans instead.
+- **An absolutely-positioned second title lands at the masthead origin**, on top
+  of the kicker. Give it the same offset the flowed title resolves to (`top:
+  41px` under a 21px kicker with a 16px margin), or absolutely position both.

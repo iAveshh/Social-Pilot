@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0; width: 1080px; height: 1920px;
+        overflow: hidden; background: #efece3;
+      }
+      body { font-family: "Inter", sans-serif; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      .clip { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+      /* ---------- paper ground ---------- */
+      #paper {
+        background:
+          radial-gradient(circle at 22% 18%, rgba(0,0,0,0.035) 0%, rgba(0,0,0,0) 55%),
+          radial-gradient(circle at 78% 82%, rgba(0,0,0,0.03) 0%, rgba(0,0,0,0) 55%),
+          #efece3;
+      }
+      #paper-tooth {
+        position: absolute; inset: 0;
+        background-image:
+          repeating-linear-gradient(0deg, rgba(22,22,26,0.028) 0px, rgba(22,22,26,0.028) 1px, transparent 1px, transparent 3px),
+          repeating-linear-gradient(90deg, rgba(22,22,26,0.022) 0px, rgba(22,22,26,0.022) 1px, transparent 1px, transparent 4px);
+      }
+
+      /* ---------- masthead ---------- */
+      #masthead {
+        position: absolute; left: 84px; top: 150px; width: 912px;
+        height: auto;
+      }
+      #kicker {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 21px; letter-spacing: 6px; color: #b0353c;
+        margin-bottom: 16px;
+      }
+      #title {
+        font-weight: 800; font-size: 74px; line-height: 1.04;
+        letter-spacing: -1.6px; color: #16161a;
+      }
+      #rule {
+        position: absolute; left: 84px; top: 372px; width: 912px; height: 3px;
+        background: #16161a;
+      }
+      #folio {
+        position: absolute; left: 84px; right: 84px; bottom: 108px;
+        top: auto; height: auto; width: auto;
+        display: flex; justify-content: space-between;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 19px; letter-spacing: 3px; color: #55555c;
+      }
+
+      /* ---------- the board (2x2 spec grid, camera pushes into it) ---------- */
+      #stage { overflow: hidden; }
+      #board {
+        position: absolute;
+        left: 540px; top: 1030px;      /* board CENTER anchor */
+        width: 1600px; height: 1200px;
+        margin-left: -800px; margin-top: -600px;
+      }
+      .card {
+        position: absolute; width: 780px; height: 580px;
+        background: #fbf9f3;
+      }
+      #card1, #card5 { left: 0;   top: 0; }
+      #card2, #card6 { left: 820px; top: 0; }
+      #card3, #card7 { left: 0;   top: 620px; }
+      #card4, #card8 { left: 820px; top: 620px; }
+
+      /* card frame drawn as 4 segments so it can draw itself on */
+      .edge-h { position: absolute; height: 3px; background: #16161a; }
+      .edge-v { position: absolute; width: 3px; background: #16161a; }
+      .e-top    { left: 0; top: 0; width: 780px; }
+      .e-right  { right: 0; top: 0; height: 580px; }
+      .e-bottom { left: 0; bottom: 0; width: 780px; }
+      .e-left   { left: 0; top: 0; height: 580px; }
+
+      /* technical-drawing corner annotations */
+      .anno {
+        position: absolute; font-family: "JetBrains Mono", monospace;
+        font-size: 15px; letter-spacing: 2px; color: #6a6a70;
+      }
+      .anno-tl { left: 26px; top: 22px; }
+      .anno-tr { right: 26px; top: 22px; }
+      .tick { position: absolute; width: 14px; height: 3px; background: #16161a; }
+
+      .card-body {
+        position: absolute; left: 0; right: 0; top: 78px;
+        display: flex; flex-direction: column; align-items: center;
+      }
+      .card-figure { height: 210px; display: flex; align-items: center; justify-content: center; }
+      .card-head {
+        font-weight: 800; font-size: 52px; letter-spacing: -0.8px;
+        color: #16161a; text-align: center; margin-top: 18px;
+      }
+      .card-cap {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 22px; line-height: 1.5; color: #44444b;
+        text-align: center; margin-top: 16px; max-width: 640px;
+      }
+      .accent { color: #b0353c; }
+
+      /* ---------- figure 1: protocol connector (line art) ---------- */
+      .ink { fill: none; stroke: #16161a; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+      .ink-fill { fill: #16161a; }
+
+      /* ---------- figure 2: real brand marks ---------- */
+      #logo-grid {
+        display: grid; grid-template-columns: repeat(3, 118px);
+        gap: 26px 44px; align-items: center; justify-items: center;
+      }
+      .logo-cell { width: 118px; height: 74px; display: flex; align-items: center; justify-content: center; }
+      .logo-cell svg { width: 62px; height: 62px; fill: #16161a; }
+
+      /* ---------- figure 3: gauge ---------- */
+      #needle-wrap {
+        position: absolute; left: 190px; top: 168px;
+        width: 4px; height: 130px;
+        background: #b0353c;
+      }
+      #gauge-max {
+        position: absolute; left: 232px; top: 150px;
+        font-family: "JetBrains Mono", monospace; font-size: 14px;
+        letter-spacing: 2px; color: #fbf9f3; background: #b0353c;
+        padding: 5px 9px;
+      }
+
+      /* ---------- generated footage, matted as a plate ----------
+         Must be a DIRECT child of the composition root (HyperFrames only
+         seeks root-level media), so it is positioned to land exactly on
+         card 01's figure area at the C1 camera stop and driven from the
+         main timeline. */
+      #plate01, #plate02, #plate03 {
+        position: absolute;
+        left: 320px; top: 744px; width: 440px; height: 248px;
+        border: 3px solid #16161a;
+        object-fit: cover;
+        filter: grayscale(0.35) contrast(1.05);
+        opacity: 0;
+      }
+
+      /* ---------- stamps live inside their card ---------- */
+      .stamp {
+        border: 4px solid #b0353c; color: #b0353c;
+        font-family: "JetBrains Mono", monospace; font-weight: 700;
+        font-size: 30px; letter-spacing: 3px; padding: 10px 20px;
+        opacity: 0;
+      }
+      /* two sheets stacked in the same board slot, cross-faded at the swap */
+      .sheet { position: absolute; left: 0; top: 0; width: 1600px; height: 1200px; }
+      #sheet2 { opacity: 0; }
+      #title2 { position: absolute; left: 0; top: 41px; width: 912px;
+        font-weight: 800; font-size: 74px; line-height: 1.04;
+        letter-spacing: -1.6px; color: #16161a; opacity: 0; }
+      #folio2 { opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="62"
+         data-width="1080" data-height="1920" style="position: relative">
+
+      <div id="paper" class="clip" data-start="0" data-duration="62" data-track-index="0">
+        <div id="paper-tooth"></div>
+      </div>
+
+      <div id="masthead" class="clip" data-start="0" data-duration="62" data-track-index="1">
+        <div id="kicker" class="mono">FIELD BRIEF / NO. 03</div>
+        <div id="title">Gemini 3.8 Flash</div>
+        <div id="title2">Gemini 3.8<br />Flash Cyber</div>
+      </div>
+      <div id="rule" class="clip" data-start="0" data-duration="62" data-track-index="2"></div>
+
+      <div id="stage" class="clip" data-start="0" data-duration="62" data-track-index="3" data-layout-allow-overflow="true">
+        <div id="board">
+          <div id="sheet1" class="sheet">
+          <div id="card1" class="card">
+            <div class="edge-h e-top"></div><div class="edge-v e-right"></div>
+            <div class="edge-h e-bottom"></div><div class="edge-v e-left"></div>
+            <div class="anno anno-tl mono">FIG. 01</div>
+            <div class="anno anno-tr mono">RELEASE</div>
+            <div class="card-body">
+              <div class="card-figure"><svg width="250" height="140" viewBox="0 0 250 140"><rect class="ink" x="18" y="20" width="214" height="100" rx="8" /></svg></div>
+              <div class="card-head">Third Flash in Six Weeks.</div>
+              <div class="card-cap mono">Gemini 3.8 Flash shipped September 2, 2026.</div>
+            </div>
+          </div>
+          <div id="card2" class="card">
+            <div class="edge-h e-top"></div><div class="edge-v e-right"></div>
+            <div class="edge-h e-bottom"></div><div class="edge-v e-left"></div>
+            <div class="anno anno-tl mono">FIG. 02</div>
+            <div class="anno anno-tr mono">PRICE</div>
+            <div class="card-body">
+              <div class="card-figure"><div style="display:flex;flex-direction:column;align-items:center;gap:14px"><svg width="250" height="96" viewBox="0 0 250 96"><path class="ink" d="M20 70h60M20 34h60" stroke-width="6" /><path class="ink" d="M108 52h34" stroke-width="4" /><path class="ink" d="M170 70h60M170 34h60" stroke-width="6" /><path class="ink" d="M125 30v44" stroke-width="4" /></svg><div class="stamp mono" id="stamp-price">UNTIL DEC 31</div></div></div>
+              <div class="card-head">$0.75 In. $3.75 Out.</div>
+              <div class="card-cap mono">Per million tokens. Introductory rate doubles January 1, 2027.</div>
+            </div>
+          </div>
+          <div id="card3" class="card">
+            <div class="edge-h e-top"></div><div class="edge-v e-right"></div>
+            <div class="edge-h e-bottom"></div><div class="edge-v e-left"></div>
+            <div class="anno anno-tl mono">FIG. 03</div>
+            <div class="anno anno-tr mono">REASONING</div>
+            <div class="card-body">
+              <div class="card-figure"><div style="position: relative; width: 380px; height: 210px"><svg width="380" height="210" viewBox="0 0 380 210"><path class="ink" d="M40 178a150 150 0 0 1 300 0" /><path class="ink" d="M40 178h300" stroke-width="3" /><path class="ink" d="M63 116l17 10M104 72l13 14M190 50v20M276 72l-13 14M317 116l-17 10" stroke-width="3" /><circle class="ink-fill" cx="190" cy="178" r="9" /></svg><div id="needle-wrap" style="left: 188px; top: 48px; height: 130px; transform-origin: 50% 100%"></div><div id="gauge-max" class="mono">54.9%</div></div></div>
+              <div class="card-head">54.9% HLE-Verified.</div>
+              <div class="card-cap mono">Multi-step reasoning. Beats larger models on DeepSWE v1.1.</div>
+            </div>
+          </div>
+          <div id="card4" class="card">
+            <div class="edge-h e-top"></div><div class="edge-v e-right"></div>
+            <div class="edge-h e-bottom"></div><div class="edge-v e-left"></div>
+            <div class="anno anno-tl mono">FIG. 04</div>
+            <div class="anno anno-tr mono">REACH</div>
+            <div class="card-body">
+              <div class="card-figure"><div id="logo-grid">
+<div class="logo-cell" id="lg1" title="Google Gemini"><svg viewBox="0 0 24 24"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/></svg></div>
+<div class="logo-cell" id="lg2" title="Android Studio"><svg viewBox="0 0 24 24"><path d="M19.2693 10.3368c-.3321 0-.6026.2705-.6026.6031v9.8324h-1.7379l-3.3355-6.9396c.476-.5387.6797-1.286.5243-2.0009a2.2862 2.2862 0 0 0-1.2893-1.6248v-.8124c.0121-.2871-.1426-.5787-.4043-.7407-.1391-.0825-.2884-.1234-.4402-.1234a.8478.8478 0 0 0-.4318.1182c-.2701.1671-.4248.4587-.4123.7662l-.0003.721c-1.0149.3668-1.6619 1.4153-1.4867 2.5197a2.282 2.282 0 0 0 .5916 1.2103l-3.2096 6.9064H4.0928c-1.0949-.007-1.9797-.8948-1.9832-1.9896V5.016c-.0055 1.1024.8836 2.0006 1.9859 2.0062a2.024 2.024 0 0 0 .1326-.0037h14.7453s2.5343-.2189 2.8619 1.5392c-.2491.0287-.4449.2321-.4449.4889 0 .7115-.5791 1.2901-1.3028 1.2901h-.8183zM17.222 22.5366c.2347.4837.0329 1.066-.4507 1.3007-.1296.0629-.2666.0895-.4018.0927a.9738.9738 0 0 1-.3194-.0455c-.024-.0078-.046-.0209-.0694-.0305a.9701.9701 0 0 1-.2277-.1321c-.0247-.0192-.0495-.038-.0724-.0598-.0825-.0783-.1574-.1672-.21-.2757l-1.2554-2.6143-1.5585-3.2452a.7725.7725 0 0 0-.6995-.4443h-.0024a.792.792 0 0 0-.7083.4443l-1.5109 3.2452-1.2321 2.6464a.9722.9722 0 0 1-.7985.5795c-.0626.0053-.1238-.0024-.185-.0087-.0344-.0036-.069-.0053-.1025-.0124-.0489-.0103-.0954-.0278-.142-.0452-.0301-.0113-.0613-.0197-.0901-.0339-.0496-.0244-.0948-.0565-.1397-.0889-.0217-.0156-.0457-.0275-.0662-.045a.9862.9862 0 0 1-.1695-.1844.9788.9788 0 0 1-.0708-.9852l.8469-1.8223 3.2676-7.0314a1.7964 1.7964 0 0 1-.7072-1.1637c-.1555-.9799.5129-1.9003 1.4928-2.0559V9.3946a.3542.3542 0 0 1 .1674-.3155.3468.3468 0 0 1 .3541 0 .354.354 0 0 1 .1674.3155v1.159l.0129.0064a1.8028 1.8028 0 0 1 1.2878 1.378 1.7835 1.7835 0 0 1-.6439 1.7836l3.3889 7.0507.8481 1.7643zM12.9841 12.306c.0042-.6081-.4854-1.1044-1.0935-1.1085a1.1204 1.1204 0 0 0-.7856.3219 1.101 1.101 0 0 0-.323.7716c-.0042.6081.4854 1.1044 1.0935 1.1085h.0077c.6046 0 1.0967-.488 1.1009-1.0935zm-1.027 5.2768c-.1119.0005-.2121.0632-.2571.1553l-1.4127 3.0342h3.3733l-1.4564-3.0328a.274.274 0 0 0-.2471-.1567zm8.1432-6.7459l-.0129-.0001h-.8177a.103.103 0 0 0-.103.103v12.9103a.103.103 0 0 0 .0966.103h.8435c.9861-.0035 1.7836-.804 1.7836-1.79V9.0468c0 .9887-.8014 1.7901-1.7901 1.7901zM2.6098 5.0161v.019c.0039.816.6719 1.483 1.4874 1.4869a12.061 12.061 0 0 1 .1309-.0034h1.1286c.1972-1.315.7607-2.525 1.638-3.4859H4.0993c-.9266.0031-1.6971.6401-1.9191 1.4975.2417.0355.4296.235.4296.4859zm6.3381-2.8977L7.9112.3284a.219.219 0 0 1 0-.2189A.2384.2384 0 0 1 8.098 0a.219.219 0 0 1 .1867.1094l1.0496 1.8158a6.4907 6.4907 0 0 1 5.3186 0L15.696.1094a.2189.2189 0 0 1 .3734.2189l-1.0302 1.79c1.6671.9125 2.7974 2.5439 3.0975 4.4018l-12.286-.0014c.3004-1.8572 1.4305-3.488 3.0972-4.4003zm5.3774 2.6202a.515.515 0 0 0 .5271.5028.515.515 0 0 0 .5151-.5151.5213.5213 0 0 0-.8885-.367.5151.5151 0 0 0-.1537.3793zm-5.7178-.0067a.5151.5151 0 0 0 .5207.5095.5086.5086 0 0 0 .367-.1481.5215.5215 0 1 0-.734-.7341.515.515 0 0 0-.1537.3727z"/></svg></div>
+<div class="logo-cell" id="lg3" title="Google Cloud"><svg viewBox="0 0 24 24"><path d="M12.19 2.38a9.344 9.344 0 0 0-9.234 6.893c.053-.02-.055.013 0 0-3.875 2.551-3.922 8.11-.247 10.941l.006-.007-.007.03a6.717 6.717 0 0 0 4.077 1.356h5.173l.03.03h5.192c6.687.053 9.376-8.605 3.835-12.35a9.365 9.365 0 0 0-2.821-4.552l-.043.043.006-.05A9.344 9.344 0 0 0 12.19 2.38zm-.358 4.146c1.244-.04 2.518.368 3.486 1.15a5.186 5.186 0 0 1 1.862 4.078v.518c3.53-.07 3.53 5.262 0 5.193h-5.193l-.008.009v-.04H6.785a2.59 2.59 0 0 1-1.067-.23h.001a2.597 2.597 0 1 1 3.437-3.437l3.013-3.012A6.747 6.747 0 0 0 8.11 8.24c.018-.01.04-.026.054-.023a5.186 5.186 0 0 1 3.67-1.69z"/></svg></div>
+<div class="logo-cell" id="lg4" title="Google Sheets"><svg viewBox="0 0 24 24"><path d="M11.318 12.545H7.91v-1.909h3.41v1.91zM14.728 0v6h6l-6-6zm1.363 10.636h-3.41v1.91h3.41v-1.91zm0 3.273h-3.41v1.91h3.41v-1.91zM20.727 6.5v15.864c0 .904-.732 1.636-1.636 1.636H4.909a1.636 1.636 0 0 1-1.636-1.636V1.636C3.273.732 4.005 0 4.909 0h9.318v6.5h6.5zm-3.273 2.773H6.545v7.909h10.91v-7.91zm-6.136 4.636H7.91v1.91h3.41v-1.91z"/></svg></div>
+<div class="logo-cell" id="lg5" title="Google Chrome"><svg viewBox="0 0 24 24"><path d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 6.848A5.454 5.454 0 0 1 12 6.545h10.691A12 12 0 0 0 12 0zM1.931 5.47A11.943 11.943 0 0 0 0 12c0 6.012 4.42 10.991 10.189 11.864l3.953-6.847a5.45 5.45 0 0 1-6.865-2.29zm13.342 2.166a5.446 5.446 0 0 1 1.45 7.09l.002.001h-.002l-5.344 9.257c.206.01.413.016.621.016 6.627 0 12-5.373 12-12 0-1.54-.29-3.011-.818-4.364zM12 16.364a4.364 4.364 0 1 1 0-8.728 4.364 4.364 0 0 1 0 8.728Z"/></svg></div>
+<div class="logo-cell" id="lg6" title="Google"><svg viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg></div>
+                </div></div>
+              <div class="card-head">Already Everywhere.</div>
+              <div class="card-cap mono">AI Studio, Android Studio, Gemini Enterprise, Search, Sheets.</div>
+            </div>
+          </div>
+          </div>
+          <div id="sheet2" class="sheet">
+          <div id="card5" class="card">
+            <div class="edge-h e-top"></div><div class="edge-v e-right"></div>
+            <div class="edge-h e-bottom"></div><div class="edge-v e-left"></div>
+            <div class="anno anno-tl mono">FIG. 05</div>
+            <div class="anno anno-tr mono">DISCOVERY</div>
+            <div class="card-body">
+              <div class="card-figure"><svg width="250" height="140" viewBox="0 0 250 140"><rect class="ink" x="18" y="20" width="214" height="100" rx="8" /></svg></div>
+              <div class="card-head">70% of Real Bugs Found.</div>
+              <div class="card-cap mono">Internal vulnerability discovery across 20 programming languages.</div>
+            </div>
+          </div>
+          <div id="card6" class="card">
+            <div class="edge-h e-top"></div><div class="edge-v e-right"></div>
+            <div class="edge-h e-bottom"></div><div class="edge-v e-left"></div>
+            <div class="anno anno-tl mono">FIG. 06</div>
+            <div class="anno anno-tr mono">PATCHING</div>
+            <div class="card-body">
+              <div class="card-figure"><svg width="260" height="150" viewBox="0 0 260 150"><path class="ink" d="M16 104h74l18-46 22 78 18-32h96" /><path class="ink" d="M16 30h228" stroke-width="3" /><path class="ink" d="M16 132h228" stroke-width="3" /></svg></div>
+              <div class="card-head">47.2% pass@1.</div>
+              <div class="card-cap mono">CWE-Bench. Surpasses far larger frontier models on CyberGym.</div>
+            </div>
+          </div>
+          <div id="card7" class="card">
+            <div class="edge-h e-top"></div><div class="edge-v e-right"></div>
+            <div class="edge-h e-bottom"></div><div class="edge-v e-left"></div>
+            <div class="anno anno-tl mono">FIG. 07</div>
+            <div class="anno anno-tr mono">FIELD</div>
+            <div class="card-body">
+              <div class="card-figure"><svg width="250" height="140" viewBox="0 0 250 140"><rect class="ink" x="18" y="20" width="214" height="100" rx="8" /></svg></div>
+              <div class="card-head">2.6x More Correct Patches.</div>
+              <div class="card-cap mono">Chrome Security, measured against leading commercial models.</div>
+            </div>
+          </div>
+          <div id="card8" class="card">
+            <div class="edge-h e-top"></div><div class="edge-v e-right"></div>
+            <div class="edge-h e-bottom"></div><div class="edge-v e-left"></div>
+            <div class="anno anno-tl mono">FIG. 08</div>
+            <div class="anno anno-tr mono">ACCESS</div>
+            <div class="card-body">
+              <div class="card-figure"><div style="display:flex;flex-direction:column;align-items:center;gap:16px"><svg width="180" height="120" viewBox="0 0 180 120"><rect class="ink" x="42" y="52" width="96" height="60" rx="8" /><path class="ink" d="M62 52V36a28 28 0 0 1 56 0v16" /><circle class="ink-fill" cx="90" cy="82" r="8" /></svg><div class="stamp mono" id="stamp-access">BY APPLICATION</div></div></div>
+              <div class="card-head">Trusted Defenders Only.</div>
+              <div class="card-cap mono">Fairwind Program. Application required.</div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="folio" class="clip" data-start="0" data-duration="62" data-track-index="4">
+        <div>GOOGLE / GEMINI 3.8 FLASH</div>
+        <div style="position:relative;width:220px;height:26px"><span id="folio-s1" style="position:absolute;right:0;top:0">SHEET 01 / 02</span><span id="folio-s2" style="position:absolute;right:0;top:0;opacity:0">SHEET 02 / 02</span></div>
+      </div>
+
+      <video id="plate01" src="assets/video/plate01.mp4"
+             data-start="3.0" data-duration="5.0" data-track-index="6" muted playsinline></video>
+      <video id="plate02" src="assets/video/plate02.mp4"
+             data-start="34.4" data-duration="5.0" data-media-start="1.5" data-track-index="7" muted playsinline></video>
+      <video id="plate03" src="assets/video/plate03.mp4"
+             data-start="46.9" data-duration="5.0" data-media-start="1.5" data-track-index="8" muted playsinline></video>
+
+      <audio id="narr" src="assets/audio/narration.mp3" data-start="2.0" data-duration="57.7"
+             data-track-index="10" data-volume="1"></audio>
+      <audio id="bgm" src="assets/music/bed.mp3" data-start="0" data-duration="62"
+             data-track-index="11" data-volume="1"></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      const WIDE = { scale: 0.60, x: 0,      y: 0 };
+      const C1   = { scale: 1.05, x:  430.5, y:  275.5 };
+      const C2   = { scale: 1.05, x: -430.5, y:  275.5 };
+      const C3   = { scale: 1.05, x:  430.5, y: -375.5 };
+      const C4   = { scale: 1.05, x: -430.5, y: -375.5 };
+      const EASE = "power2.inOut";
+
+      /* ---- masthead ---- */
+      tl.fromTo("#kicker", { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 0.15);
+      tl.fromTo("#title",  { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 0.3);
+      tl.fromTo("#rule",   { opacity: 1, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.5, ease: "power2.out", transformOrigin: "left center" }, 0.55);
+      tl.fromTo("#folio",  { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "none" }, 0.7);
+
+      /* ---- sheet 1 assembles ---- */
+      tl.fromTo("#board", { scale: 0.52, opacity: 0 }, { scale: 0.6, opacity: 1, duration: 0.55, ease: "power2.out" }, 0.4);
+      ["#card1", "#card2", "#card3", "#card4"].forEach(function (c, i) {
+        var t = 0.75 + i * 0.15;
+        tl.fromTo(c + " .e-top",    { scaleX: 0 }, { scaleX: 1, duration: 0.18, ease: "power2.out", transformOrigin: "left center" }, t);
+        tl.fromTo(c + " .e-right",  { scaleY: 0 }, { scaleY: 1, duration: 0.18, ease: "power2.out", transformOrigin: "center top" }, t + 0.06);
+        tl.fromTo(c + " .e-bottom", { scaleX: 0 }, { scaleX: 1, duration: 0.18, ease: "power2.out", transformOrigin: "right center" }, t + 0.12);
+        tl.fromTo(c + " .e-left",   { scaleY: 0 }, { scaleY: 1, duration: 0.18, ease: "power2.out", transformOrigin: "center bottom" }, t + 0.18);
+        tl.fromTo(c + " .card-body", { opacity: 0 }, { opacity: 1, duration: 0.26, ease: "power1.out" }, t + 0.2);
+        tl.fromTo(c + " .anno", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "none" }, t + 0.26);
+      });
+      tl.fromTo("#card1 .ink", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out", stagger: 0.03 }, 1.0);
+      tl.fromTo("#card2 .ink", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out", stagger: 0.03 }, 1.15);
+      ["#lg1","#lg2","#lg3","#lg4","#lg5","#lg6"].forEach(function (l, i) {
+        tl.fromTo(l, { opacity: 0, scale: 0.55 }, { opacity: 1, scale: 1, duration: 0.24, ease: "back.out(2.2)", transformOrigin: "center center" }, 1.25 + i * 0.06);
+      });
+
+      /* ---- frame furniture: hidden while pushed in, back at each wide beat ---- */
+      function furnitureOut(t) {
+        tl.to("#masthead", { opacity: 0, duration: 0.32, ease: "power1.in" }, t);
+        tl.to("#rule",     { opacity: 0, duration: 0.32, ease: "power1.in" }, t);
+        tl.to("#folio",    { opacity: 0, duration: 0.32, ease: "power1.in" }, t);
+      }
+      function furnitureIn(t) {
+        tl.to("#masthead", { opacity: 1, duration: 0.45, ease: "power1.out" }, t);
+        tl.to("#rule",     { opacity: 1, duration: 0.45, ease: "power1.out" }, t);
+        tl.to("#folio",    { opacity: 1, duration: 0.45, ease: "power1.out" }, t);
+      }
+      furnitureOut(1.6);
+      furnitureIn(31.5);      /* the sheet swap happens on a wide shot */
+      furnitureOut(33.2);
+      furnitureIn(60.1);
+
+      /* ---- camera, keyed to measured narration beats ---- */
+      tl.to("#board", Object.assign({ duration: 0.85, ease: EASE }, C1), 1.6);
+      tl.to("#board", Object.assign({ duration: 0.85, ease: EASE }, C2), 8.6);
+      tl.to("#board", Object.assign({ duration: 0.85, ease: EASE }, C3), 17.0);
+      tl.to("#board", Object.assign({ duration: 0.85, ease: EASE }, C4), 23.1);
+      tl.to("#board", Object.assign({ duration: 0.9,  ease: EASE }, WIDE), 30.7);
+      tl.to("#board", Object.assign({ duration: 0.85, ease: EASE }, C1), 33.2);
+      tl.to("#board", Object.assign({ duration: 0.85, ease: EASE }, C2), 39.7);
+      tl.to("#board", Object.assign({ duration: 0.85, ease: EASE }, C3), 45.6);
+      tl.to("#board", Object.assign({ duration: 0.85, ease: EASE }, C4), 51.6);
+      tl.to("#board", Object.assign({ duration: 0.9,  ease: EASE }, WIDE), 59.3);
+
+      /* ---- sheet swap, on "then there's the cyber variant" ---- */
+      tl.to("#sheet1", { opacity: 0, duration: 0.5, ease: "power1.inOut" }, 31.8);
+      tl.fromTo("#sheet2", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power1.inOut" }, 32.1);
+      tl.to("#title",  { opacity: 0, duration: 0.35, ease: "power1.in" }, 31.8);
+      tl.fromTo("#title2", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 32.15);
+      tl.to("#folio-s1", { opacity: 0, duration: 0.3, ease: "none" }, 31.9);
+      tl.fromTo("#folio-s2", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "none" }, 32.1);
+
+      /* ---- FIG 01: printed edition plate ---- */
+      tl.to("#card1 .card-figure", { opacity: 0, duration: 0.3, ease: "power1.in" }, 2.85);
+      tl.fromTo("#plate01", { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out", transformOrigin: "center center" }, 3.0);
+      tl.to("#plate01", { opacity: 0, duration: 0.3, ease: "power1.in" }, 7.7);
+      tl.set("#plate01", { opacity: 0 }, 8.0);
+      tl.to("#card1 .card-figure", { opacity: 1, duration: 0.3, ease: "power1.out" }, 8.0);
+
+      /* ---- FIG 02: the introductory-price stamp ---- */
+      tl.fromTo("#stamp-price", { opacity: 0, scale: 2.0, rotation: -8 }, { opacity: 1, scale: 1, rotation: -4, duration: 0.4, ease: "power4.out", transformOrigin: "center center" }, 13.6);
+
+      /* ---- FIG 03: needle sweeps to 54.9% ---- */
+      tl.fromTo("#needle-wrap", { rotation: -78 }, { rotation: 5, duration: 1.2, ease: "power2.inOut" }, 18.3);
+      tl.fromTo("#gauge-max", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.4)", transformOrigin: "center center" }, 19.4);
+
+      /* ---- FIG 04: reach, each mark pops ---- */
+      ["#lg1","#lg2","#lg3","#lg4","#lg5","#lg6"].forEach(function (l, i) {
+        tl.fromTo(l, { scale: 1 }, { scale: 1.2, duration: 0.22, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "center center" }, 24.4 + i * 0.42);
+      });
+
+      /* ---- sheet 2 figures ink in as it appears ---- */
+      tl.fromTo("#card6 .ink", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power1.out", stagger: 0.04 }, 32.4);
+      tl.fromTo("#card8 .ink", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power1.out", stagger: 0.04 }, 32.6);
+
+      /* ---- FIG 05: the flaw revealed ---- */
+      tl.to("#card5 .card-figure", { opacity: 0, duration: 0.3, ease: "power1.in" }, 34.25);
+      tl.fromTo("#plate02", { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out", transformOrigin: "center center" }, 34.4);
+      tl.to("#plate02", { opacity: 0, duration: 0.3, ease: "power1.in" }, 39.1);
+      tl.set("#plate02", { opacity: 0 }, 39.4);
+      tl.to("#card5 .card-figure", { opacity: 1, duration: 0.3, ease: "power1.out" }, 39.4);
+
+      /* ---- FIG 07: the seam sealed ---- */
+      tl.to("#card7 .card-figure", { opacity: 0, duration: 0.3, ease: "power1.in" }, 46.75);
+      tl.fromTo("#plate03", { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out", transformOrigin: "center center" }, 46.9);
+      tl.to("#plate03", { opacity: 0, duration: 0.3, ease: "power1.in" }, 51.6);
+      tl.set("#plate03", { opacity: 0 }, 51.9);
+      tl.to("#card7 .card-figure", { opacity: 1, duration: 0.3, ease: "power1.out" }, 51.9);
+
+      /* ---- FIG 08: gated access ---- */
+      tl.fromTo("#stamp-access", { opacity: 0, scale: 2.0, rotation: -9 }, { opacity: 1, scale: 1, rotation: -4, duration: 0.4, ease: "power4.out", transformOrigin: "center center" }, 54.3);
+      tl.fromTo("#card8 .card-head", { scale: 1 }, { scale: 1.04, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, 54.4);
+
+      /* ---- audio ---- */
+      tl.set("#bgm", { volume: 0.26 }, 0);
+      tl.to("#bgm", { volume: 0.12, duration: 0.6, ease: "power1.inOut" }, 1.7);
+      tl.to("#bgm", { volume: 0.28, duration: 0.8, ease: "power1.inOut" }, 59.4);
+      tl.to("#bgm", { volume: 0, duration: 1.1, ease: "power1.in" }, 60.7);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
