@@ -28,6 +28,13 @@ Accept any of these, in any combination:
 pick the strongest angle yourself. Only stop to ask if the request is genuinely
 ambiguous about *what story to tell*.
 
+**Nothing in this pipeline is hard-coded to a story.** Given any link it should
+harvest that page's own hero art, title block and charts, detect the hero brand
+from the title, sync to whatever narration it generates, and pick a device that
+fits the shape of that particular story. If you find yourself hand-picking
+assets or hard-coding a layout for one article, generalise it instead — the next
+run will be a different link.
+
 ## The Format (the reusable spine)
 
 Three acts. This structure is what makes the format work — keep it. The *visual
@@ -199,7 +206,25 @@ pixabay_music: {'query': '<mood> technology', 'min_duration': 20,
 Only fall back to `fal_elevenlabs_music` ($0.80/track) if nothing fits. Bed sits
 at `volume: 0.22` under narration, ducking to 0 over the last second.
 
-### 6b. Grounding: logos, receipts, plates
+### 6b. Grounding: the hero, then the evidence
+Read `../brand.md` first — it governs all of this.
+
+**Start with the hero.** Every story is about something: a model, a product, a
+company, a protocol. Identify it, then put its real mark *and* the publisher's
+own announcement art in the opening beat. One command does the harvesting for
+any link:
+
+```bash
+node reference/harvest-refs.mjs <url> projects/<slug>/assets/refs
+python reference/find-logos.py "<article title>"
+```
+That yields `hero.png` (og:image), `header.png` (title block with headroom),
+`chart_N.png` for every benchmark figure, and the hero brand's icon slug.
+
+Opening order: **hero mark + wordmark → publisher hero art → your headline →
+the device.** The headline is your angle; the hero art is theirs. Both belong.
+
+### 6c. Grounding: logos, receipts, charts
 Read `../brand.md` first — it governs all three, and getting them wrong is what
 makes a series look generic.
 
@@ -312,9 +337,9 @@ Two more from the captions/plates build:
 | `reference/devices-example.html` | Build 2 — release chips, price flip, racing bars, gate |
 | `reference/full-stack-example.html` | Build 3 — everything: captions, logo chip, receipt, matted plates, SFX bed |
 | `reference/build-captions-and-sfx.py` | Transcript → caption chunks; synthesises + mixes the SFX bed |
-| `reference/receipt.mjs` | `node receipt.mjs <url> <out.png> [clipH]` — source-page capture |
-| `reference/inspect-page.mjs` | List a page's headings, tables and charts before choosing what to capture |
-| `reference/capture-refs.mjs` | Element-precise capture of charts/tables (`img:N:name`, `sel:<css>:name`, `clip:x,y,w,h:name`) |
+| `reference/harvest-refs.mjs` | **One call, any URL** → hero art, header block with headroom, every chart, + manifest |
+| `reference/inspect-page.mjs` | Survey a page's headings/tables/charts without capturing |
+| `reference/find-logos.py` | Story title → hero brand slug (+ brands with no mark available) |
 | `reference/measure-pitch.py` | Compare narration takes for monotone (F0 semitone variation) |
 | `reference/gotchas.md` | Ten failure modes, each one a lost render cycle |
 

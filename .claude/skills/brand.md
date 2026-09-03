@@ -41,6 +41,34 @@ The series has a house voice for small text. Reuse it:
 - `SOURCE / <domain>` — above a receipt
 - Headlines are declarative and end in a period. "One Protocol." "It Fell."
 
+## The hero
+
+**Every story has a hero** — the product, model, company or protocol it is
+actually about. Identify it before anything else, because two things follow
+from it and both belong in the *opening beat*, not buried later:
+
+1. **The hero's real brand mark**, at size. Not a footnote chip — the mark is
+   how a viewer knows in half a second what this is about.
+2. **The hero's own announcement art** (`og:image`), matted below it.
+
+The opening of a reel is therefore: hero mark + wordmark → publisher's hero
+image → your headline (the angle) → the device. The publisher already made a
+hero image for this story; use it rather than inventing one.
+
+Secondary brands (things the hero is compared to, or shipped into) get marks
+too, but smaller and later — a logo grid or a chip, never the opening.
+
+### Finding the hero automatically
+
+```bash
+npm install simple-icons@16 playwright --no-save
+python .claude/skills/ai-news-reel/reference/find-logos.py "<article title>" "<any other brands>"
+```
+It matches the story's own words against the installed icon set and returns the
+hero first — the brand named in the *title* is the hero. It also flags brands
+that exist but have no mark available, so you get a wordmark treatment instead
+of silence.
+
 ## Real brand marks
 
 Never let a generator draw a logo — it will be subtly wrong, and it is a
@@ -52,8 +80,9 @@ python .claude/skills/paper-brief-reel/reference/extract-logos.py <slug> ...
 ```
 
 **Treatment is monochrome, always.** `#e8e8ea` on dark, `#16161a` on paper,
-fixed cell size, in a bordered chip. Six logos in their own brand colours turn
-the frame into a rainbow and destroy the palette in one shot.
+fixed cell size. Six logos in their own brand colours turn the frame into a
+rainbow and destroy the palette in one shot. The hero mark is the one place to
+go large — 76px+ in a lockup with the product name.
 
 > **OpenAI and Microsoft are not in simple-icons** (both requested removal).
 > Use their official press-kit SVG, or set the name as an Inter 800 wordmark.
@@ -84,12 +113,31 @@ the piece both cheaper and more credible.
 
 ### Capturing reference material
 
-`node ai-news-reel/reference/capture-refs.mjs <url> <outDir> <spec>...` grabs
-specific elements — `img:2:name` for the nth substantial image, `sel:<css>:name`
-for a selector, `clip:x,y,w,h:name` for a region. It scrolls the page first so
-lazy-loaded charts actually render. Inspect what a page holds before choosing:
-`node ai-news-reel/reference/inspect-page.mjs <url>` lists headings, tables and
-images with their positions.
+One command harvests any article — it is deliberately story-agnostic, so the
+same call works whatever link you are handed:
+
+```bash
+node .claude/skills/ai-news-reel/reference/harvest-refs.mjs <url> <outDir>
+```
+
+It writes `manifest.json` plus:
+
+| File | What it is |
+|---|---|
+| `hero.png` | `og:image`, else the largest image above the fold — the publisher's own hero art |
+| `header.png` | the title block **with headroom** — breadcrumb, headline, date, byline |
+| `chart_N.png` | every figure whose alt text reads like a chart/benchmark/comparison |
+
+It scrolls the whole page first (lazy-loaded charts do not exist until you do)
+and hides `position: fixed`/`sticky` chrome before capturing, because sticky
+nav bars and cookie banners otherwise float into every element screenshot.
+
+`inspect-page.mjs <url>` prints the same survey without capturing, when you just
+want to see what a page holds.
+
+**Never crop flush to the text.** A header cropped tight to its headline reads
+as misaligned — the harvester pads 120px above the `h1` for exactly this reason.
+Give every captured block visible air on all four sides.
 
 ### Treatment
 
