@@ -58,6 +58,18 @@ hero image for this story; use it rather than inventing one.
 Secondary brands (things the hero is compared to, or shipped into) get marks
 too, but smaller and later — a logo grid or a chip, never the opening.
 
+**The platform is not the hero.** A model card on Hugging Face, a repo on
+GitHub, a paper on arXiv — the host is *where the story lives*, not what it is
+about. Never promote it to the hero slot; it may appear as a small "hosted on"
+chip at most. `find-logos.py` classifies every match as `subject` or `platform`
+for exactly this reason.
+
+**When the subject has no mark, use a wordmark — do not substitute.** Plenty of
+real heroes have no icon (GLM/Z.ai, OpenAI, Microsoft). The correct answer is
+the product name set in Inter 800 in the hero lockup. Falling back to whatever
+mark happens to be available puts the wrong brand on the opening card, which is
+worse than having no mark at all.
+
 ### Finding the hero automatically
 
 ```bash

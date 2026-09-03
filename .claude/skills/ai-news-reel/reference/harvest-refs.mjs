@@ -51,8 +51,23 @@ await page.waitForTimeout(200);
 
 const meta = await page.evaluate(() => {
   const pick = (s) => document.querySelector(s)?.getAttribute('content') || null;
-  const h1 = document.querySelector('h1');
-  const CHARTY = /(chart|graph|benchmark|comparison|score|results?|eval|performance|vs\b|pass@)/i;
+  // Many sites (Hugging Face, GitHub, docs portals) put a repo/nav h1 above
+  // the real content title. Score for the content one instead of taking [0].
+  const ogTitle = (document.querySelector('meta[property="og:title"]')
+                   ?.getAttribute('content') || '');
+  const h1 = [...document.querySelectorAll('h1')].map((el) => {
+    const t = (el.innerText || '').trim();
+    let s = 0;
+    if (el.closest('article, main, [class*="prose"], [class*="markdown"], [class*="model-card"]')) s += 50;
+    if (/[\r\n]/.test(t)) s -= 40;      // stacked repo chrome / metadata rows
+    if (t && ogTitle.toLowerCase().includes(t.toLowerCase().slice(0, 18))) s += 25;
+    s -= Math.min(t.length / 20, 15);
+    return { el, s };
+  }).sort((a, b) => b.s - a.s)[0]?.el || null;
+
+  // Stems, not whole words: a Hugging Face card names its benchmark image
+  // "bench_53", which /benchmark/ never matches. Test the filename too.
+  const CHARTY = /(chart|graph|bench|compar|score|result|eval|metric|perf|accuracy|latency|throughput|pass@|table)/i;
 
   const imgs = [...document.querySelectorAll('img')].map((e, domIndex) => {
     const r = e.getBoundingClientRect();
@@ -61,10 +76,11 @@ const meta = await page.evaluate(() => {
       w: Math.round(r.width), h: Math.round(r.height),
       y: Math.round(r.top + window.scrollY),
       alt: e.alt || '',
-      charty: CHARTY.test(e.alt || ''),
+      charty: CHARTY.test((e.alt || '') + ' ' + (e.currentSrc || e.src || '').split('/').pop()),
     };
   }).filter(o => o.w > 280 && o.h > 140);
 
+  window.__hfHeroH1 = h1;
   return {
     title: document.title,
     h1: h1 ? h1.innerText.trim() : null,
@@ -80,7 +96,8 @@ const manifest = { url, ...meta, captured: {} };
 // Cropping flush to the headline reads as misaligned. Take the H1's box and
 // pad generously above it so the title has air.
 try {
-  const box = await (await page.$('h1')).boundingBox();
+  const handle = await page.evaluateHandle(() => window.__hfHeroH1);
+  const box = await handle.asElement().boundingBox();
   const PAD_TOP = 120, PAD_X = 56, BELOW = 330;
   const clip = {
     x: Math.max(0, box.x - PAD_X),
@@ -114,7 +131,7 @@ try {
 } catch (e) { manifest.captured.heroError = String(e).slice(0, 120); }
 
 // --- charts ---------------------------------------------------------------
-const charts = meta.imgs.filter(i => i.charty && i.y > 900);
+const charts = meta.imgs.filter(i => i.charty && i.y > 400);
 manifest.captured.charts = [];
 for (let n = 0; n < charts.length && n < 8; n++) {
   const c = charts[n];
