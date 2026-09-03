@@ -26,6 +26,11 @@ text-to-video prompts and source logos yourself.
 
 ## Design system (do not drift)
 
+> Shared with `ai-news-reel` via `../brand.md` — read that first. It holds the
+> palette, type pairing, annotation grammar, and the logo / generated-image /
+> caption / sound contracts that keep both formats reading as one publisher.
+> What follows is the paper-format specialisation.
+
 ```
 ground      #efece3   cream press stock (+ subtle tooth texture)
 card        #fbf9f3   slightly lighter paper

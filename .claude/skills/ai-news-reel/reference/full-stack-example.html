@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #0a0a0c; }
+      body { font-family: "Inter", sans-serif; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      .clip { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+      /* ambient */
+      #bg { background: radial-gradient(ellipse at 50% 34%, #15151c 0%, #0a0a0c 72%); }
+      #bg-glow { overflow: hidden; }
+      #bg-glow-inner { position: absolute; left: 50%; top: 42%; width: 1000px; height: 1000px;
+        margin-left: -500px; margin-top: -500px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,122,69,0.13) 0%, rgba(255,122,69,0) 70%); opacity: 0.7; }
+      #bg-grid { overflow: hidden; }
+      #bg-grid-inner { position: absolute; top: -80px; left: -80px; width: 1240px; height: 2080px;
+        background-image:
+          repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 64px),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 64px); }
+      #activity-dot-wrap { position: absolute; right: 64px; top: 72px; }
+      #activity-dot { width: 14px; height: 14px; border-radius: 50%; background: #ff7a45;
+        box-shadow: 0 0 12px 2px rgba(255,122,69,0.6); }
+
+      /* brand chip - real vendor mark, monochrome per the contract */
+      #brandchip { position: absolute; left: 80px; top: 200px; width: auto; height: auto;
+        display: flex; align-items: center; gap: 16px;
+        border: 2px solid #3a3a44; border-radius: 10px; padding: 12px 20px;
+        background: rgba(22,22,28,0.8); opacity: 0; }
+      #brandchip svg { width: 34px; height: 34px; fill: #e8e8ea; }
+      #brandchip span { font-family: "JetBrains Mono", monospace; font-size: 24px;
+        letter-spacing: 3px; color: #c9c9ce; }
+
+      #headline { position: absolute; left: 80px; top: 300px; width: 920px;
+        font-weight: 800; font-size: 60px; line-height: 1.14; color: #e8e8ea; letter-spacing: -0.5px; }
+      .label-xs { position: absolute; font-family: "JetBrains Mono", monospace;
+        font-size: 22px; letter-spacing: 3px; color: #8f8f98; }
+
+      /* matted plates - the mat is what makes a generated image read as editorial */
+      .plate { position: absolute; left: 160px; width: 760px; height: 428px;
+        border: 3px solid #2c2c34; object-fit: cover;
+        filter: grayscale(0.25) contrast(1.05) brightness(0.92); opacity: 0; }
+      #plate-cadence { top: 600px; }
+      #plate-gate { top: 560px; }
+      #plate-scan { top: 540px; height: 214px; }
+
+      /* the receipt - the actual source page, proof of the claim */
+      #receipt { position: absolute; left: 160px; top: 1000px; width: 760px; height: 430px;
+        border: 3px solid #3a3a44; object-fit: cover; opacity: 0; }
+      #receipt-tag { left: 160px; top: 950px; color: #ff7a45; opacity: 0; }
+
+      /* act 1 */
+      .rel-chip { position: absolute; top: 1080px; width: 268px; height: 104px;
+        border: 2px solid #3a3a44; border-radius: 10px; background: rgba(22,22,28,0.85);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-family: "JetBrains Mono", monospace; color: #c9c9ce; opacity: 0; }
+      .rel-chip b { font-size: 30px; font-weight: 600; letter-spacing: 2px; }
+      .rel-chip i { font-style: normal; font-size: 18px; color: #79797f; letter-spacing: 2px; margin-top: 6px; }
+      #rel1 { left: 80px; } #rel2 { left: 406px; } #rel3 { left: 732px; border-color: #ff7a45; }
+      #rel3 b { color: #ff7a45; }
+
+      #price-label { left: 80px; top: 690px; opacity: 0; }
+      #price-now, #price-later { position: absolute; left: 80px; top: 740px; width: 920px;
+        font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 126px;
+        letter-spacing: -2px; color: #e8e8ea; }
+      #price-now { opacity: 0; } #price-later { opacity: 0; color: #ff5c5c; }
+      #price-unit { left: 80px; top: 905px; opacity: 0; }
+
+      /* act 2 */
+      #bars-title { left: 80px; top: 820px; opacity: 0; }
+      .bar-row { position: absolute; left: 80px; width: 920px; height: 100px; opacity: 0; }
+      #bar1 { top: 890px; } #bar2 { top: 1010px; } #bar3 { top: 1130px; } #bar4 { top: 1250px; }
+      .bar-label { position: absolute; left: 0; top: 0;
+        font-family: "JetBrains Mono", monospace; font-size: 25px; letter-spacing: 2px; color: #b6b6bd; }
+      .bar-val { position: absolute; right: 0; top: -6px;
+        font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 42px; color: #e8e8ea; opacity: 0; }
+      .bar-track { position: absolute; left: 0; top: 48px; width: 920px; height: 20px;
+        background: #1c1c24; border-radius: 3px; }
+      .bar-fill { position: absolute; left: 0; top: 0; height: 20px; border-radius: 3px;
+        background: #4a4a56; transform-origin: left center; }
+      #bar3 .bar-fill, #bar4 .bar-fill { background: #ff7a45; }
+      #bar3 .bar-val, #bar4 .bar-val { color: #ff7a45; }
+
+      /* act 3 */
+      #gate { position: absolute; left: 140px; top: 1090px; width: 800px; height: auto;
+        border: 3px solid #ff5c5c; border-radius: 16px; padding: 40px 42px;
+        background: rgba(28,18,20,0.72); opacity: 0; }
+      #gate .g-tag { font-family: "JetBrains Mono", monospace; font-size: 23px;
+        letter-spacing: 4px; color: #ff5c5c; margin-bottom: 22px; }
+      #gate .g-head { font-weight: 800; font-size: 54px; color: #e8e8ea; letter-spacing: -0.5px; }
+      #gate .g-sub { font-family: "JetBrains Mono", monospace; font-size: 25px;
+        line-height: 1.5; color: #b6b6bd; margin-top: 16px; }
+      #lock { position: absolute; left: 50%; top: 1010px; margin-left: -40px; opacity: 0; }
+      .ink { fill: none; stroke: #ff5c5c; stroke-width: 5; stroke-linecap: round; }
+
+      /* captions - most Reel viewing is muted, so these carry the script */
+      .caption { position: absolute; left: 90px; right: 90px; top: auto; bottom: 380px;
+        width: auto; height: auto; text-align: center;
+        font-size: 46px; font-weight: 700; letter-spacing: 1px; line-height: 1.25;
+        color: #f2f2f4; text-shadow: 0 3px 22px rgba(0,0,0,0.95), 0 0 8px rgba(0,0,0,0.9);
+        opacity: 0; }
+      #tagline { position: absolute; left: 80px; right: 80px; bottom: 380px; top: auto;
+        width: auto; height: auto; font-family: "JetBrains Mono", monospace; font-size: 30px;
+        letter-spacing: 2px; color: #9a9aa2; text-align: center; opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="27.5"
+         data-width="1080" data-height="1920" style="position: relative">
+
+      <div id="bg" class="clip" data-start="0" data-duration="27.5" data-track-index="0"></div>
+      <div id="bg-glow" class="clip" data-start="0" data-duration="27.5" data-track-index="1" data-layout-allow-overflow="true">
+        <div id="bg-glow-inner"></div></div>
+      <div id="bg-grid" class="clip" data-start="0" data-duration="27.5" data-track-index="2" data-layout-allow-overflow="true">
+        <div id="bg-grid-inner"></div></div>
+      <div id="activity-dot-wrap" class="clip" data-start="0" data-duration="27.5" data-track-index="3">
+        <div id="activity-dot"></div></div>
+
+      <!-- ACT 1 -->
+      <div id="act1" class="clip" data-start="0" data-duration="12.6" data-track-index="5" data-layout-allow-overflow="true">
+        <div id="act1-inner">
+          <div id="brandchip"><svg viewBox="0 0 24 24"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/></svg><span>GEMINI 3.8 FLASH</span></div>
+          <div id="headline">GOOGLE SHIPPED THREE<br />MODELS IN SIX WEEKS.</div>
+          <div id="rel1" class="rel-chip"><b>3.6 FLASH</b><i>JUL</i></div>
+          <div id="rel2" class="rel-chip"><b>3.7 FLASH</b><i>AUG</i></div>
+          <div id="rel3" class="rel-chip"><b>3.8 FLASH</b><i>SEP 2</i></div>
+          <div id="price-label" class="label-xs">PRICE / 1M INPUT TOKENS</div>
+          <div id="price-now" class="mono">$0.75</div>
+          <div id="price-later" class="mono">$1.50</div>
+          <div id="price-unit" class="label-xs">INTRODUCTORY</div>
+          <div id="receipt-tag" class="label-xs">SOURCE / BLOG.GOOGLE</div>
+        </div>
+      </div>
+      <img id="plate-cadence" class="plate" src="assets/images/plate_cadence.jpg"
+           data-start="1.1" data-duration="4.9" data-track-index="6" />
+      <img id="receipt" src="assets/receipts/source.jpg"
+           data-start="6.5" data-duration="5.6" data-track-index="7" />
+
+      <!-- ACT 2 -->
+      <div id="act2" class="clip" data-start="12.4" data-duration="10.6" data-track-index="8" data-layout-allow-overflow="true">
+        <div id="act2-inner">
+          <div id="bars-title" class="label-xs">BENCHMARK / GEMINI 3.8 FLASH</div>
+          <div id="bar1" class="bar-row"><div class="bar-label mono">HLE-VERIFIED</div>
+            <div class="bar-val mono">54.9%</div><div class="bar-track"><div class="bar-fill" style="width:505px"></div></div></div>
+          <div id="bar2" class="bar-row"><div class="bar-label mono">CWE-BENCH PATCH</div>
+            <div class="bar-val mono">47.2%</div><div class="bar-track"><div class="bar-fill" style="width:434px"></div></div></div>
+          <div id="bar3" class="bar-row"><div class="bar-label mono">VULNS FOUND</div>
+            <div class="bar-val mono">70%+</div><div class="bar-track"><div class="bar-fill" style="width:644px"></div></div></div>
+          <div id="bar4" class="bar-row"><div class="bar-label mono">CHROME PATCHES</div>
+            <div class="bar-val mono">2.6x</div><div class="bar-track"><div class="bar-fill" style="width:828px"></div></div></div>
+        </div>
+      </div>
+      <img id="plate-scan" class="plate" src="assets/images/plate_scan.jpg"
+           data-start="12.7" data-duration="9.8" data-track-index="9" />
+
+      <!-- ACT 3 -->
+      <div id="act3" class="clip" data-start="22.8" data-duration="4.7" data-track-index="10" data-layout-allow-overflow="true">
+        <div id="act3-inner">
+          <div id="lock"><svg width="80" height="92" viewBox="0 0 92 104">
+            <rect class="ink" x="14" y="44" width="64" height="48" rx="8" />
+            <path class="ink" d="M28 44V30a18 18 0 0 1 36 0v14" /></svg></div>
+          <div id="gate">
+            <div class="g-tag mono">FAIRWIND PROGRAM</div>
+            <div class="g-head">You Have to Apply.</div>
+            <div class="g-sub mono">Flash Cyber ships to vetted defenders only.</div>
+          </div>
+        </div>
+      </div>
+      <img id="plate-gate" class="plate" src="assets/images/plate_gate.jpg"
+           data-start="22.9" data-duration="4.6" data-track-index="11" />
+
+      <div id="cap0" class="clip caption mono" data-start="0.40" data-duration="0.78" data-track-index="20" data-layout-allow-overlap="true">GOOGLE JUST SHIPPED</div>
+      <div id="cap1" class="clip caption mono" data-start="1.18" data-duration="0.88" data-track-index="20" data-layout-allow-overlap="true">THEIR THIRD FLASH</div>
+      <div id="cap2" class="clip caption mono" data-start="2.06" data-duration="0.82" data-track-index="20" data-layout-allow-overlap="true">MODEL IN SIX</div>
+      <div id="cap3" class="clip caption mono" data-start="2.88" data-duration="0.38" data-track-index="20" data-layout-allow-overlap="true">WEEKS,</div>
+      <div id="cap4" class="clip caption mono" data-start="3.60" data-duration="1.70" data-track-index="20" data-layout-allow-overlap="true">THIRD IN SIX</div>
+      <div id="cap5" class="clip caption mono" data-start="5.30" data-duration="0.54" data-track-index="20" data-layout-allow-overlap="true">WEEKS,</div>
+      <div id="cap6" class="clip caption mono" data-start="6.28" data-duration="1.46" data-track-index="20" data-layout-allow-overlap="true">75 CENTS PER</div>
+      <div id="cap7" class="clip caption mono" data-start="7.74" data-duration="0.84" data-track-index="20" data-layout-allow-overlap="true">MILLION TOKENS,</div>
+      <div id="cap8" class="clip caption mono" data-start="8.58" data-duration="0.94" data-track-index="20" data-layout-allow-overlap="true">BUT THAT'S THE</div>
+      <div id="cap9" class="clip caption mono" data-start="9.52" data-duration="1.02" data-track-index="20" data-layout-allow-overlap="true">INTRODUCTORY PRICE.</div>
+      <div id="cap10" class="clip caption mono" data-start="11.14" data-duration="0.94" data-track-index="20" data-layout-allow-overlap="true">ON JANUARY 1ST,</div>
+      <div id="cap11" class="clip caption mono" data-start="12.40" data-duration="0.86" data-track-index="20" data-layout-allow-overlap="true">IT DOUBLES.</div>
+      <div id="cap12" class="clip caption mono" data-start="13.64" data-duration="1.78" data-track-index="20" data-layout-allow-overlap="true">THE CYBER VERSION FINDS</div>
+      <div id="cap13" class="clip caption mono" data-start="15.42" data-duration="2.18" data-track-index="20" data-layout-allow-overlap="true">REAL VULNERABILITIES 70%</div>
+      <div id="cap14" class="clip caption mono" data-start="17.60" data-duration="0.70" data-track-index="20" data-layout-allow-overlap="true">OF THE TIME.</div>
+      <div id="cap15" class="clip caption mono" data-start="18.68" data-duration="1.00" data-track-index="20" data-layout-allow-overlap="true">IT PATCHES CHROME</div>
+      <div id="cap16" class="clip caption mono" data-start="19.68" data-duration="1.24" data-track-index="20" data-layout-allow-overlap="true">BUGS 2.6</div>
+      <div id="cap17" class="clip caption mono" data-start="20.92" data-duration="0.84" data-track-index="20" data-layout-allow-overlap="true">TIMES BETTER THAN</div>
+      <div id="cap18" class="clip caption mono" data-start="21.76" data-duration="0.90" data-track-index="20" data-layout-allow-overlap="true">ANYTHING COMMERCIAL.</div>
+      <div id="cap19" class="clip caption mono" data-start="23.40" data-duration="0.78" data-track-index="20" data-layout-allow-overlap="true">THERE'S ONE CATCH.</div>
+      <div id="cap20" class="clip caption mono" data-start="24.86" data-duration="0.54" data-track-index="20" data-layout-allow-overlap="true">YOU HAVE TO</div>
+      <div id="cap21" class="clip caption mono" data-start="25.40" data-duration="0.35" data-track-index="20" data-layout-allow-overlap="true">APPLY.</div>
+
+      <div id="tagline" class="clip" data-start="26.1" data-duration="1.4" data-track-index="21">
+        THE MODEL IS CHEAP. THE ACCESS ISN'T.
+      </div>
+
+      <audio id="narr" src="assets/audio/narration.mp3" data-start="0.4" data-duration="25.55"
+             data-track-index="30" data-volume="1"></audio>
+      <audio id="sfx" src="assets/sfx/sfx_bed.mp3" data-start="0" data-duration="27.5"
+             data-track-index="31" data-volume="1"></audio>
+      <audio id="bgm" src="assets/music/bed.mp3" data-start="0" data-duration="27.5"
+             data-track-index="32" data-volume="1"></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      /* ambient */
+      tl.fromTo("#bg-grid-inner", { x: 0, y: 0 }, { x: -64, y: -64, duration: 4, ease: "none", repeat: 10 }, 0);
+      tl.fromTo("#bg-glow-inner", { scale: 1, opacity: 0.7 }, { scale: 1.08, opacity: 0.92, duration: 3.5, ease: "sine.inOut", yoyo: true, repeat: 10 }, 0);
+      tl.fromTo("#activity-dot", { opacity: 0.25, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 44 }, 0);
+
+      /* ===== ACT 1 ===== */
+      tl.fromTo("#headline", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 0.15);
+      tl.fromTo("#brandchip", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 0.55);
+      tl.fromTo("#plate-cadence", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out", transformOrigin: "center center" }, 1.15);
+
+      tl.fromTo("#rel1", { opacity: 0, y: 22, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.28, ease: "back.out(2)" }, 1.5);
+      tl.fromTo("#rel2", { opacity: 0, y: 22, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.28, ease: "back.out(2)" }, 2.0);
+      tl.fromTo("#rel3", { opacity: 0, y: 22, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.28, ease: "back.out(2)" }, 2.5);
+      tl.fromTo("#rel3", { scale: 1 }, { scale: 1.09, duration: 0.22, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "center center" }, 3.8);
+      tl.fromTo("#rel3", { scale: 1 }, { scale: 1.06, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "center center" }, 4.7);
+
+      /* clear for the price */
+      tl.to("#headline", { opacity: 0, duration: 0.28, ease: "power1.in" }, 5.75);
+      tl.to(".rel-chip", { opacity: 0, duration: 0.28, ease: "power1.in" }, 5.75);
+      tl.to("#plate-cadence", { opacity: 0, duration: 0.3, ease: "power1.in" }, 5.7);
+      tl.set("#plate-cadence", { opacity: 0 }, 6.0);
+
+      tl.fromTo("#price-label", { opacity: 0 }, { opacity: 1, duration: 0.28, ease: "none" }, 6.15);
+      tl.fromTo("#price-now", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.38, ease: "power2.out" }, 6.3);
+      /* the receipt: the actual page the number came from */
+      tl.fromTo("#receipt", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 6.55);
+      tl.fromTo("#receipt-tag", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "none" }, 6.8);
+      tl.fromTo("#price-unit", { opacity: 0 }, { opacity: 1, duration: 0.28, ease: "none" }, 9.1);
+
+      /* RUPTURE */
+      tl.to("#price-now", { opacity: 0, duration: 0.2, ease: "power1.in" }, 10.9);
+      tl.fromTo("#price-later", { opacity: 0, scale: 1.5 }, { opacity: 1, scale: 1, duration: 0.38, ease: "power4.out", transformOrigin: "left center" }, 10.95);
+      tl.to("#price-unit", { opacity: 0, duration: 0.2, ease: "none" }, 10.95);
+
+      tl.to("#act1-inner", { opacity: 0, duration: 0.3, ease: "power1.in" }, 12.1);
+      tl.set("#act1-inner", { opacity: 0 }, 12.40);
+      tl.set("#price-now", { opacity: 0 }, 11.14);
+      tl.set("#price-unit", { opacity: 0 }, 11.14);
+      tl.to("#receipt", { opacity: 0, duration: 0.3, ease: "power1.in" }, 11.8);
+      tl.set("#receipt", { opacity: 0 }, 12.1);
+
+      /* ===== ACT 2 ===== */
+      tl.fromTo("#plate-scan", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out" }, 12.75);
+      tl.fromTo("#bars-title", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.3, ease: "power2.out" }, 12.8);
+      [["#bar1", 13.0], ["#bar2", 13.6]].forEach(function (b) {
+        tl.fromTo(b[0], { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" }, b[1]);
+        tl.fromTo(b[0] + " .bar-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.65, ease: "power2.out" }, b[1] + 0.12);
+        tl.fromTo(b[0] + " .bar-val", { opacity: 0 }, { opacity: 1, duration: 0.22, ease: "none" }, b[1] + 0.65);
+      });
+      tl.fromTo("#bar3", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" }, 14.4);
+      tl.fromTo("#bar3 .bar-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.85, ease: "power2.out" }, 14.55);
+      tl.fromTo("#bar3 .bar-val", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.32, ease: "back.out(2)", transformOrigin: "right center" }, 15.4);
+      tl.fromTo("#bar4", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" }, 18.25);
+      tl.fromTo("#bar4 .bar-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.95, ease: "power2.out" }, 18.4);
+      tl.fromTo("#bar4 .bar-val", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.32, ease: "back.out(2)", transformOrigin: "right center" }, 19.4);
+
+      tl.to("#act2-inner", { opacity: 0, duration: 0.3, ease: "power1.in" }, 22.5);
+      tl.set("#act2-inner", { opacity: 0 }, 22.80);
+      tl.to("#plate-scan", { opacity: 0, duration: 0.3, ease: "power1.in" }, 22.4);
+      tl.set("#plate-scan", { opacity: 0 }, 22.5);
+
+      /* ===== ACT 3 ===== */
+      tl.fromTo("#plate-gate", { opacity: 0, scale: 0.97 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out", transformOrigin: "center center" }, 22.95);
+      tl.fromTo("#lock", { opacity: 0, y: -16, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.38, ease: "back.out(2)", transformOrigin: "center center" }, 23.05);
+      tl.fromTo("#gate", { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.38, ease: "power3.out", transformOrigin: "center center" }, 23.2);
+      tl.fromTo("#gate", { scale: 1 }, { scale: 1.03, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "center center" }, 24.6);
+
+      /* captions */
+      tl.fromTo("#cap0", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 0.40);
+      tl.fromTo("#cap1", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 1.18);
+      tl.fromTo("#cap2", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 2.06);
+      tl.fromTo("#cap3", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 2.88);
+      tl.fromTo("#cap4", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 3.60);
+      tl.fromTo("#cap5", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 5.30);
+      tl.fromTo("#cap6", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 6.28);
+      tl.fromTo("#cap7", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 7.74);
+      tl.fromTo("#cap8", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 8.58);
+      tl.fromTo("#cap9", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 9.52);
+      tl.fromTo("#cap10", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 11.14);
+      tl.fromTo("#cap11", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 12.40);
+      tl.fromTo("#cap12", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 13.64);
+      tl.fromTo("#cap13", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 15.42);
+      tl.fromTo("#cap14", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 17.60);
+      tl.fromTo("#cap15", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 18.68);
+      tl.fromTo("#cap16", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 19.68);
+      tl.fromTo("#cap17", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 20.92);
+      tl.fromTo("#cap18", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 21.76);
+      tl.fromTo("#cap19", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 23.40);
+      tl.fromTo("#cap20", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 24.86);
+      tl.fromTo("#cap21", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 25.40);
+      tl.fromTo("#tagline", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power1.out" }, 26.15);
+
+      /* audio: music ducks under the voice, sfx sits between them */
+      tl.set("#bgm", { volume: 0.30 }, 0);
+      tl.to("#bgm", { volume: 0.13, duration: 0.5, ease: "power1.inOut" }, 0.25);
+      tl.to("#bgm", { volume: 0.30, duration: 0.6, ease: "power1.inOut" }, 25.7);
+      tl.to("#bgm", { volume: 0, duration: 0.9, ease: "power1.in" }, 26.6);
+      tl.set("#sfx", { volume: 0.55 }, 0);
+      tl.to("#sfx", { volume: 0, duration: 0.6, ease: "power1.in" }, 26.8);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

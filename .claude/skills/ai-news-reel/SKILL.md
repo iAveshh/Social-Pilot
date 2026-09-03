@@ -147,18 +147,48 @@ not.
 Keep the voice ID stable across the series so the account sounds like one
 person.
 
-### 5. Get real timings (free, and non-negotiable)
-Do **not** guess when sentences land. Measure:
-```bash
-ffmpeg -i projects/<slug>/assets/audio/narration_full.mp3 \
-  -af "silencedetect=noise=-32dB:d=0.22" -f null - 2>&1 | grep -E "silence_(start|end)"
-```
-Each gap is a sentence boundary. Add the audio's `data-start` offset (0.2) to
-convert to composition time. Every visual beat keys off these numbers — this is
-what makes the motion feel authored rather than approximate.
+### 5. Get real timings + captions (free, and non-negotiable)
+Do **not** guess when sentences land. `transcriber` (local faster-whisper, no
+API cost) gives **word-level** timestamps — richer than silence detection and
+the source for captions too:
 
-(`transcriber` gives word-level timings if `faster-whisper` is installed; it
-usually isn't, and silence detection is enough.)
+```python
+transcriber: {'input_path': 'projects/<slug>/assets/audio/narration_full.mp3',
+              'model_size': 'base', 'language': 'en',
+              'output_dir': 'projects/<slug>/artifacts'}
+```
+If it reports unavailable, `pip install faster-whisper` once — free and local.
+Fallback if you truly can't: `ffmpeg -af "silencedetect=noise=-32dB:d=0.22"`
+gives sentence gaps only.
+
+Add the audio's `data-start` offset to convert to composition time. Every visual
+beat keys off these numbers — it's what makes the motion feel authored.
+
+### 5b. Captions (free, and the biggest engagement win available)
+Most Reel viewing is muted. A reel with no captions is a reel most viewers watch
+with the script missing.
+
+`reference/build-captions-and-sfx.py` turns the transcript into 2-3 word chunks
+and writes `artifacts/captions.json`, then emits one timed clip per chunk (all
+on a single track — they never overlap). Styling and the rules that stop
+captions reading as gibberish are in `../brand.md`; the one that bites is:
+
+> A chunk may never open on `%`, `.6` or a bare stub. Peek at the next token
+> before closing a chunk — "BUGS 2" / ".6" shipped into a render before this
+> rule existed.
+
+Correct whisper's mis-joins by hand ("cyberversion" → "cyber version"). These
+are designed on-screen text, not a transcript.
+
+### 5c. Sound design (free)
+No SFX tool is wrapped in this repo, so the beats are voiced with
+ffmpeg-synthesised UI cues — which suit a terminal aesthetic better than real
+foley anyway. Recipes and the mixing gotcha (**a sparse `amix` lands near
+-30 dBFS; boost ~+24 dB and limit**) are in `../brand.md`. Same script builds
+the bed.
+
+Put a cue on every beat the eye already registers: each chip landing, the
+rupture, each bar filling, the gate closing. Ride it at `volume: 0.55`.
 
 ### 6. Music (free)
 Try free search first — it has consistently beaten paying:
@@ -168,6 +198,23 @@ pixabay_music: {'query': '<mood> technology', 'min_duration': 20,
 ```
 Only fall back to `fal_elevenlabs_music` ($0.80/track) if nothing fits. Bed sits
 at `volume: 0.22` under narration, ducking to 0 over the last second.
+
+### 6b. Grounding: logos, receipts, plates
+Read `../brand.md` first — it governs all three, and getting them wrong is what
+makes a series look generic.
+
+- **Logos (free).** Real vector marks via simple-icons, monochrome, in a
+  bordered chip. When the story names a product, show its mark.
+- **Receipts (free).** `node reference/receipt.mjs <url> <out.png> [clipHeight]`
+  screenshots the actual source page. Crop to the headline block, mat it, label
+  it `SOURCE / <domain>`. Leave it bright against the dark ground — it reads as
+  holding up the document. Nothing else buys this much credibility for $0.
+- **Image plates (paid, ~$0.04-0.05 each).** `image_selector` against the brand
+  image spine, one per act at most, always matted. Six stills beat one video
+  clip at this budget.
+
+Keep them sparse. This format is strong *because* it's designed — plates are
+punctuation, never wallpaper.
 
 ### 7. Compose (free)
 Author `projects/<slug>/hyperframes/index.html` from the template, plus
@@ -207,16 +254,28 @@ this repo.
 
 ## Cost model
 
+Costs are written as `USD n.nn` — a bare dollar-sign before a digit gets eaten
+by argument substitution when a skill is invoked with arguments.
+
 | Line | Typical |
 |---|---|
-| Narration (35-45 words) | $0.02 |
-| Music (free search) | $0.00 |
-| Motion graphics + render (local) | $0.00 |
-| **Total** | **~$0.03** |
+| Narration, `eleven-v3` (35-45 words) | USD 0.03 |
+| Music (free search) | USD 0.00 |
+| Captions, logos, receipts, SFX (all local) | USD 0.00 |
+| Image plates, `image_selector` | USD 0.04-0.05 each |
+| Motion graphics + render (local) | USD 0.00 |
 
-Budget cap for the `animation` pipeline is $2.00 — this format uses ~2% of it.
-No image or video generation is needed; if you find yourself reaching for
-either, the concept has drifted from this format.
+**Two tiers, both real:**
+
+- **Lean — ~USD 0.03.** Narration + free music + vector devices. Add captions,
+  logos, receipts and SFX and it is *still* USD 0.03, because all four are free.
+  That combination is most of the quality.
+- **Full — ~USD 0.20-0.35.** The above plus 3-6 matted image plates.
+
+The budget is rarely the constraint here. **Spend the free wins first** — a reel
+with captions, a real vendor mark, a source receipt and sound design beats one
+with three AI images and none of those. Video generation stays out of this
+format: one 5s clip costs more than six stills and buys less.
 
 ## Hard-won gotchas
 
@@ -224,6 +283,28 @@ Read `reference/gotchas.md` before authoring the composition. It documents the
 bugs this format has actually hit — the `.clip` height trap, cold-seek
 invisibility, tween overlap, ticker/headline collisions, and the `validate`
 hang. Each cost a render cycle to find.
+
+Two more from the captions/plates build:
+
+- **An exit tween that lands exactly on the *next* clip's start boundary needs
+  its own hard kill** at that timestamp — not at the fading clip's own end.
+  Lint names the exact time; use it verbatim.
+- **`amix` of sparse SFX cues comes out around -30 dBFS.** Boost ~+24 dB and
+  limit, or the sound design is inaudible under narration and you will not
+  notice until you play the render.
+
+## Reference files
+
+| File | What it is |
+|---|---|
+| `../brand.md` | **Read first.** Palette, type, logo/image/caption/sound contract shared with `paper-brief-reel`. |
+| `reference/composition-template.html` | Build 1 — sandbox rupture + incident chain |
+| `reference/devices-example.html` | Build 2 — release chips, price flip, racing bars, gate |
+| `reference/full-stack-example.html` | Build 3 — everything: captions, logo chip, receipt, matted plates, SFX bed |
+| `reference/build-captions-and-sfx.py` | Transcript → caption chunks; synthesises + mixes the SFX bed |
+| `reference/receipt.mjs` | `node receipt.mjs <url> <out.png> [clipH]` — source-page capture |
+| `reference/measure-pitch.py` | Compare narration takes for monotone (F0 semitone variation) |
+| `reference/gotchas.md` | Ten failure modes, each one a lost render cycle |
 
 ## Quality bar
 
