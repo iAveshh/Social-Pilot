@@ -98,13 +98,40 @@ Write `script` + checkpoint. Include `voice_performance` and per-section
 Route through `tts_selector` — never call a provider tool directly.
 
 ```python
-{'text': <full narration>, 'voice_id': 'pNInz6obpgDQGcFmaJgB',
- 'model_id': 'eleven_multilingual_v2', 'stability': 0.7,
- 'similarity_boost': 0.9, 'style': 0.1, 'speed': 1.0,
+{'text': <narration with inline emotion tags>, 'voice_id': 'pNInz6obpgDQGcFmaJgB',
+ 'model_id': 'eleven-v3', 'stability': 0.35,
+ 'similarity_boost': 0.75, 'style': 0.6,
  'output_path': 'projects/<slug>/assets/audio/narration_full.mp3'}
 ```
-Adam @ these settings = calm, precise, technical-report delivery. Keep it
-consistent across the series so the account has one voice.
+
+**Use `eleven-v3` with inline emotion tags — not v2 settings.** Early videos in
+this series shipped a flat, monotone read. The fix is *not* the stability/style
+knobs; changing them on `eleven_multilingual_v2` does essentially nothing.
+Measured across five variants of the same script:
+
+| variant | median pitch | pitch variation | range |
+|---|---|---|---|
+| v2, "professional" (stability .7 / style .1) | 127 Hz | 3.92 st | 10.41 st |
+| v2, "energetic" (stability .35 / style .6) | 133 Hz | 3.77 st | 9.58 st |
+| v2, energetic, George voice | 124 Hz | 3.04 st | 6.86 st |
+| v3, no tags | 155 Hz | 3.70 st | 9.11 st |
+| **v3 + emotion tags** | **157 Hz** | **4.49 st** | **11.25 st** |
+
+Only the model-plus-tags combination moved the needle. Tag the turns, not every
+line — `[excited]` on the hook, `[emphatic]` on the number that matters,
+`[intrigued]` on the closing catch. Four or five tags in a 40-word script.
+
+Loudness is the wrong thing to measure here: RMS spread was flat across all five
+variants. **Monotone is a pitch property**, so measure F0 variation in semitones
+(autocorrelation per 40 ms frame, median-normalised). Under ~3 st reads flat;
+4+ reads lively.
+
+The writing carries as much as the settings. Fragments and repetition give the
+voice something to perform — "Third. In six weeks." lands; a smooth clause does
+not.
+
+Keep the voice ID stable across the series so the account sounds like one
+person.
 
 ### 5. Get real timings (free, and non-negotiable)
 Do **not** guess when sentences land. Measure:
