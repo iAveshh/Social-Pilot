@@ -227,7 +227,16 @@ nothing and carry most of the design's character.
 7. Optional narration (`tts_selector`) + free music bed.
 8. `npx hyperframes check` → **0 errors** → `npx hyperframes render --workers 1`.
 9. Extract frames at the wide shot and each camera stop and **look at them**.
-10. Copy to `renders/final.mp4`, checkpoint, deliver with caption + hashtags.
+10. Copy to `renders/final.mp4`, checkpoint.
+11. **Render a cover.** Same step and same crop rules as
+    `ai-news-reel` (see *The cover* in that SKILL.md and
+    `.claude/skills/ai-news-reel/reference/render-thumbnail.mjs`), but recolour
+    the template to this palette: `#efece3` ground, `#16161a` ink, `#b0353c`
+    accent on the stamp only, and the kicker set as `FIELD BRIEF / NO. NN`.
+    The headline still ends in a period.
+12. Deliver the MP4 **and the cover** with caption + hashtags. Offer
+    `save-to-icloud` to get them onto the user's phone for posting — on
+    request, not automatically.
 
 ## Gotchas
 

@@ -158,3 +158,39 @@ Also banned: `repeat: -1` (use a finite count), `Math.random()` without a seed,
 The deterministic font compiler only inlines fonts it maps. Safe:
 **Inter**, **JetBrains Mono**, Outfit, Montserrat, Poppins, Playfair Display.
 `Space Grotesk` silently falls back to Arial.
+
+---
+
+## 11. Rotating an SVG shape about a hinge
+
+Any device where a part swings — a padlock shackle opening, a gate arm, a
+needle, a lid — rotates about a *hinge*, not its own centre. Two traps, and
+both render silently wrong rather than erroring:
+
+**CSS `transform-origin` does not resolve in viewBox units.** Given
+`<svg width="260" height="292" viewBox="0 0 160 180">`, writing
+`#shackle { transform-origin: 114px 80px; }` does **not** pivot at user-space
+(114, 80) — the part detaches and swings from the wrong point. Use GSAP's
+`svgOrigin`, which is specified in viewBox user units, and set it in **both**
+`fromTo` vars:
+
+```js
+tl.fromTo("#shackle",
+  { rotation: 0,  svgOrigin: "114 80" },
+  { rotation: 38, svgOrigin: "114 80", duration: 0.45, ease: "back.out(1.6)" }, 11.62);
+```
+
+**The swung part leaves the viewBox and gets clipped.** SVG defaults to
+`overflow: hidden`, so a shackle that rotates up past `y=0` simply vanishes and
+you are left with a lone lock body. Add `#lock svg { overflow: visible; }` (and
+`data-layout-allow-overflow="true"` on the wrapper).
+
+Sign convention: **positive rotation is clockwise.** Hinging on the *right* leg
+means positive lifts the left leg up and open; negative buries it in the body.
+Work the destination corner out on paper before rendering — the checker cannot
+tell "open" from "swung the wrong way through the lock".
+
+`check` reports this as a `rotation_pivot_drift` **warning**, never an error,
+and the number is the tell: a correct hinge drifts tens of pixels (a hinged
+part's bbox centre legitimately moves), a broken one drifts hundreds. Chase the
+number down, but do not expect it to reach zero — for a hinge it should not.

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <!--
+      Reel cover template. Swap the four content slots below and nothing else:
+        #lockup  the subject's name (+ its vector mark if one exists)
+        h1       three lines max, the middle one in <em> for the accent
+        #stamp   the payoff the headline does not carry (a licence, a price, a date)
+        #spec    one mono line of receipts
+
+      Render with reference/render-thumbnail.mjs, which also writes the 4:5 and
+      1:1 crop proofs. Look at all three before shipping.
+    -->
+    <title>Reel cover</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden;
+        background: #0a0a0c; font-family: "Inter", sans-serif; }
+
+      #bg { position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 50% 44%, #17171f 0%, #0a0a0c 74%); }
+      #grid { position: absolute; inset: 0;
+        background-image:
+          repeating-linear-gradient(0deg,  rgba(255,255,255,0.045) 0 1px, transparent 1px 64px),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 64px); }
+      #glow { position: absolute; left: 50%; top: 46%; width: 1180px; height: 1180px;
+        margin: -590px 0 0 -590px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,122,69,0.20) 0%, rgba(255,122,69,0) 70%); }
+
+      /* The real benchmark chart, dropped to a texture and faded at both edges.
+         It is proof the claim came from somewhere, not decoration. */
+      #proof { position: absolute; left: 0; right: 0; top: 1420px; height: 440px;
+        opacity: 0.10; filter: grayscale(1) contrast(1.15);
+        -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 34%, #000 62%, transparent 100%);
+                mask-image: linear-gradient(180deg, transparent 0%, #000 34%, #000 62%, transparent 100%); }
+      #proof img { width: 1180px; margin-left: -50px; display: block; }
+
+      /* Everything that carries meaning lives between y=560 and y=1400 so it
+         survives both the 4:5 profile-grid crop and the 1:1 thumbnail crop. */
+      #lockup { position: absolute; left: 80px; top: 560px;
+        display: flex; align-items: center; gap: 20px; }
+      #lockup b { font-weight: 800; font-size: 46px; letter-spacing: -0.5px; color: #e8e8ea; }
+      #lockup i { font-style: normal; font-family: "JetBrains Mono", monospace;
+        font-size: 20px; letter-spacing: 3px; color: #ff7a45;
+        border: 2px solid #ff7a45; border-radius: 8px; padding: 8px 14px; }
+
+      /* Three lines, never four - a fourth wraps into whatever sits below it. */
+      h1 { position: absolute; left: 80px; top: 660px; width: 940px;
+        font-weight: 800; font-size: 118px; line-height: 1.02;
+        letter-spacing: -4px; color: #e8e8ea; }
+      h1 em { font-style: normal; color: #ff7a45; }
+
+      /* The stamp carries the payoff the headline does not: the licence. */
+      #stamp { position: absolute; left: 80px; top: 1092px;
+        font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 62px;
+        letter-spacing: 5px; color: #ff7a45;
+        border: 6px solid #ff7a45; border-radius: 14px; padding: 14px 30px;
+        transform: rotate(-3deg); }
+
+      #spec { position: absolute; left: 84px; top: 1268px;
+        font-family: "JetBrains Mono", monospace; font-size: 28px;
+        letter-spacing: 4px; color: #9a9aa3; }
+      #spec s { text-decoration: none; color: #e8e8ea; }
+    </style>
+  </head>
+  <body>
+    <div id="bg"></div>
+    <div id="grid"></div>
+    <div id="glow"></div>
+    <div id="proof"><img src="../hyperframes/assets/refs/chart.jpg" alt="" /></div>
+
+    <div id="lockup"><b>GLM-5.3-Flash</b><i>OPEN WEIGHTS</i></div>
+    <h1>IT BEAT<br /><em>CLAUDE OPUS</em><br />ON 4 OF 6.</h1>
+    <div id="stamp">MIT LICENSED</div>
+    <div id="spec">320B TOTAL &middot; <s>18B ACTIVE</s> &middot; 441K PULLS</div>
+  </body>
+</html>

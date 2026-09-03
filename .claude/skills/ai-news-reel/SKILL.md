@@ -66,16 +66,27 @@ one account, but pick a **diagram device that fits this story**:
 | Adoption / survey stat | A grid of dots (population) | Dots filling / splitting into segments |
 | Release / pricing | Version chips landing in cadence | The headline number **flipping** to a worse one |
 | Gated launch | — | A lock + bordered gate panel that slams shut |
+| Open release / licence | Wordmark lockup + the publisher's own hero art | A lock that **opens** + the licence stamping in |
+| Sparse / mixture-of-experts | A full-width bar for the total | It dims to leave only the active slice lit |
 
 If the new video would look identical to the last one, change the device.
 
-Two built references, deliberately sharing zero devices:
+**Invert a device rather than inventing a weak one.** A gate that slams shut and
+a lock that swings open are the same mechanism carrying opposite meanings, and
+the second reads instantly because the first taught the grammar. Look for the
+inverse before reaching for something new.
+
+Three built references, deliberately sharing zero devices:
 
 - `reference/composition-template.html` — sandbox container that ruptures, then
   an incident chain with a travelling packet (`how-agents-work-reel`).
 - `reference/devices-example.html` — release chips landing in cadence, a price
   that flips `$0.75 → $1.50` in red, four benchmark bars racing with only the
   narrated two in accent, and a lock/gate close (`gemini-flash-reel`).
+- `projects/glm-flash-open-reel/hyperframes/index.html` — a wordmark lockup
+  (the subject had no vector mark), the publisher's benchmark chart carrying a
+  `4 / 6` tally stamp, a 320B→18B parameter-ratio bar, and a padlock that
+  opens. See gotcha 11 before animating anything that hinges.
 
 **The rupture does not have to be a break.** In the second example it is a
 number turning against the viewer — same three-act shape, no broken container
@@ -281,10 +292,23 @@ before — the frame check is what catches them.
 Copy to `projects/<slug>/renders/final.mp4`, write `render_report` +
 `final_review`, checkpoint `compose`.
 
-### 9. Deliver
-`SendUserFile` the final MP4. Report: runtime, actual cost, what each act does,
-any bug found and fixed. Offer a caption + hashtags. Posting happens outside
-this repo.
+### 9. Cover (mandatory, free)
+See **The cover** below. Copy `reference/thumbnail-template.html` to
+`projects/<slug>/thumbnail/index.html`, swap the four content slots, then:
+```bash
+cd <scratchpad>          # playwright lives here, not in the repo
+node render-thumbnail.mjs <abs>/thumbnail/index.html <abs>/renders/thumbnail.png
+```
+Look at the cover **and** both crop proofs it writes beside it.
+
+### 10. Deliver
+`SendUserFile` the final MP4 **and the cover PNG**. Report: runtime, actual
+cost, what each act does, any bug found and fixed. Offer a caption + hashtags.
+Posting happens outside this repo.
+
+Offer the `save-to-icloud` skill to put the video, covers and caption on the
+user's phone — that is where posting actually happens. Run it when they ask,
+not automatically; it writes outside the repo.
 
 ## Cost model
 
@@ -328,6 +352,39 @@ Two more from the captions/plates build:
   limit, or the sound design is inaudible under narration and you will not
   notice until you play the render.
 
+## The cover
+
+A Reel is scrolled past before it plays. Ship a cover with every video — it is
+free, it takes one render, and it is the only frame most people ever see.
+
+```bash
+node reference/render-thumbnail.mjs <proj>/thumbnail/index.html <proj>/renders/thumbnail.png
+```
+
+Start from `reference/thumbnail-template.html` and swap four slots:
+
+| Slot | Holds |
+|---|---|
+| `#lockup` | The subject's name, plus its vector mark if one exists |
+| `h1` | The hook — **three lines maximum**, middle line in `<em>` for the accent |
+| `#stamp` | The payoff the headline does not carry — a licence, a price, a date |
+| `#spec` | One mono line of receipts |
+
+**The cover is not a frame of the video.** It restates the hook with fewer
+words and larger type; a screenshot of act 1 is smaller, busier and weaker.
+
+Three rules, each learned the hard way:
+
+- **Everything readable lives between y=560 and y=1400.** Instagram never shows
+  the full 1080x1920 in a grid. The script writes `.4x5.png` (profile grid) and
+  `.1x1.png` (square) crop proofs next to the cover — **look at all three**. If
+  it survives the 1:1, it survives everything.
+- **Count the headline's lines in the render, not in your head.** A fourth line
+  wraps down into the stamp and the collision is silent — no checker runs here.
+- **Reference imagery goes in as texture, not content**: the captured chart at
+  ~0.10 opacity, grayscale, masked to fade at both edges. It says the claim came
+  from somewhere without competing with the type.
+
 ## Reference files
 
 | File | What it is |
@@ -341,7 +398,14 @@ Two more from the captions/plates build:
 | `reference/inspect-page.mjs` | Survey a page's headings/tables/charts without capturing |
 | `reference/find-logos.py` | Story title → hero brand slug (+ brands with no mark available) |
 | `reference/measure-pitch.py` | Compare narration takes for monotone (F0 semitone variation) |
-| `reference/gotchas.md` | Ten failure modes, each one a lost render cycle |
+| `reference/thumbnail-template.html` | Reel cover — four content slots, crop-safe by construction |
+| `reference/render-thumbnail.mjs` | Cover HTML → 1080x1920 PNG + the 4:5 and 1:1 crop proofs |
+| `reference/gotchas.md` | Eleven failure modes, each one a lost render cycle |
+
+> **Playwright lives in the scratchpad, not the repo.** `harvest-refs.mjs` and
+> `render-thumbnail.mjs` both need it, and neither the repo nor the global npm
+> root has it installed. Run them with the scratchpad as cwd (that is where
+> `npm install playwright` put it), passing absolute paths for input and output.
 
 ## Quality bar
 
@@ -353,3 +417,4 @@ Before delivering, confirm:
 - [ ] `check` passed 0 errors; frames visually reviewed
 - [ ] Runtime 15-25s, no dead air after narration ends (max ~2.5s tail)
 - [ ] Text legible at phone size — nothing under ~24px, contrast passes AA
+- [ ] **A cover was rendered, and its 4:5 and 1:1 crops were both looked at**

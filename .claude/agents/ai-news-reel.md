@@ -36,6 +36,7 @@ cycle to rediscover.
 
 When done, report concisely:
 - Path to `projects/<slug>/renders/final.mp4`
+- Path to `projects/<slug>/renders/thumbnail.png` (the cover — ship one every time)
 - Runtime and actual cost
 - One line per act describing what the motion does
 - Any bug you hit and how you fixed it

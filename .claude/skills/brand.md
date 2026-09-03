@@ -212,3 +212,27 @@ hear under narration. Ride it at `volume: 0.55` between the voice and the music.
 
 `narration 1.0` · `sfx 0.55` · `music 0.13` under speech, `0.30` in the clear.
 Target the finished mix at roughly -17 dB mean, peak under -0.5 dB.
+
+---
+
+## Covers
+
+Every reel ships a cover image, in whichever palette its skill uses. The rules
+below are shared; the colours are not.
+
+**Crop safety.** Design at 1080x1920, but Instagram shows a 1080x1350 crop in
+the profile grid and a 1080x1080 square as a thumbnail. Everything that must be
+read lives between **y=560 and y=1400**. Render the crop proofs and look at
+them — `ai-news-reel/reference/render-thumbnail.mjs` writes both automatically.
+
+**Four slots, no more.** Subject lockup, hook headline (three lines maximum,
+one line accented), a stamp carrying the payoff the headline does not, and one
+mono line of receipts. A fifth element makes it a slide, not a cover.
+
+**The cover is not a frame of the video.** It restates the hook with fewer words
+and much larger type. Lifting a frame from act 1 always reads smaller and busier
+than type set for a still.
+
+**Reference imagery is texture here, not content** — the same
+reference-imagery-only rule applies, but at ~0.10 opacity, grayscale, masked to
+fade at both edges. It signals the claim has a source without fighting the type.

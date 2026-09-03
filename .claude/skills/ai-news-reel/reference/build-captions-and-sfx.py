@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Caption groups from word timings + a synthesised UI sound stem.
 
+    python build-captions-and-sfx.py <project-slug> [narration-offset]
+
 Captions: whisper word timestamps grouped into 2-3 word chunks so they read at
 Reel speed instead of flashing one word at a time.
 
@@ -12,8 +14,9 @@ import os, sys, json, subprocess
 REPO = r'D:\Github Forks\Social-Pilot'
 os.chdir(REPO); sys.path.insert(0, REPO)
 
-PROJ = 'projects/gemini-flash-reel'
-NARR_OFFSET = 0.4          # narration data-start in the composition
+slug = sys.argv[1] if len(sys.argv) > 1 else 'gemini-flash-reel'
+PROJ = 'projects/' + slug.replace('projects/', '')
+NARR_OFFSET = float(sys.argv[2]) if len(sys.argv) > 2 else 0.4   # narration data-start
 
 # ---------------------------------------------------------------- captions
 tj = None
@@ -38,21 +41,53 @@ for seg in data.get('segments', []):
         if t:
             words.append((t, float(w['start']), float(w['end'])))
 
-# group into chunks of <=3 words, breaking on punctuation
+# Group into chunks of <=3 words, breaking on punctuation -- but never split a
+# number away from the words that carry it. A naive break renders lines like
+# "BUGS 2" / ".6" and "CLAUDE OPUS ON 4" / "OF 6 BENCHMARKS", which read as
+# broken text on screen. So look at both boundaries before closing a chunk.
+def bare_num(tok):
+    return tok.strip('.,').replace(',', '').isdigit()
+
+
+def opens_ok(tok):
+    """A line may not start on a stray decimal, a lone digit or a symbol."""
+    return tok[0].isalnum() and not (len(tok) <= 1 and tok.isdigit())
+
+
+def closes_ok(tok):
+    """A line may not end on a bare numeral unless punctuation closes it."""
+    return tok.endswith(('.', ',', '?', '!')) or not bare_num(tok)
+
+
 chunks, cur = [], []
-for t, s, e in words:
+for i, (t, s, e) in enumerate(words):
     cur.append((t, s, e))
-    if len(cur) >= 3 or t.endswith(('.', ',', '?', '!')):
+    nxt = words[i + 1][0] if i + 1 < len(words) else None
+    if (nxt is None or opens_ok(nxt)) and closes_ok(t) and \
+       (len(cur) >= 3 or t.endswith(('.', ',', '?', '!'))):
         chunks.append(cur); cur = []
 if cur:
-    chunks.append(cur)
+    # a one- or two-word tail reads as an orphan; fold it into the previous line
+    if chunks and len(cur) <= 2:
+        chunks[-1] += cur
+    else:
+        chunks.append(cur)
+
+# Whisper reliably mishears a few things. Correct them here rather than in the
+# composition, so the burned captions match what the narrator actually said.
+# Extend per story; spelled-out acronyms and compound words are the usual cases.
+FIX = {'M I T': 'MIT', 'A P I': 'API', 'L L M': 'LLM', 'G P U': 'GPU',
+       'WEIGHT LIST': 'WAITLIST', 'WAIT LIST': 'WAITLIST',
+       'OPEN A I': 'OPENAI', 'CYBERVERSION': 'CYBER VERSION'}
 
 caps = []
 for c in chunks:
-    text = ' '.join(w[0] for w in c)
+    text = ' '.join(w[0] for w in c).upper().replace(' %', '%').replace(' .', '.')
+    for bad, good in FIX.items():
+        text = text.replace(bad, good)
     start = c[0][1] + NARR_OFFSET
     end = c[-1][2] + NARR_OFFSET
-    caps.append({'text': text.upper(), 'start': round(start, 2),
+    caps.append({'text': text, 'start': round(start, 2),
                  'dur': round(max(end - start, 0.35), 2)})
 json.dump(caps, open(os.path.join(PROJ, 'artifacts', 'captions.json'), 'w',
                      encoding='utf-8'), indent=1)
