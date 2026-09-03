@@ -40,18 +40,19 @@
       .label-xs { position: absolute; font-family: "JetBrains Mono", monospace;
         font-size: 22px; letter-spacing: 3px; color: #8f8f98; }
 
-      /* matted plates - the mat is what makes a generated image read as editorial */
-      .plate { position: absolute; left: 160px; width: 760px; height: 428px;
-        border: 3px solid #2c2c34; object-fit: cover;
-        filter: grayscale(0.25) contrast(1.05) brightness(0.92); opacity: 0; }
-      #plate-cadence { top: 600px; }
-      #plate-gate { top: 560px; }
-      #plate-scan { top: 540px; height: 214px; }
-
-      /* the receipt - the actual source page, proof of the claim */
-      #receipt { position: absolute; left: 160px; top: 1000px; width: 760px; height: 430px;
-        border: 3px solid #3a3a44; object-fit: cover; opacity: 0; }
-      #receipt-tag { left: 160px; top: 950px; color: #ff7a45; opacity: 0; }
+      /* Every image on screen is REFERENCE material captured from the source -
+         a headline block, a benchmark chart. No generic/mood imagery: if an
+         image does not carry information the narration cannot, it is cut. */
+      .ref { position: absolute; left: 80px; width: 920px;
+        border: 3px solid #3a3a44; border-radius: 14px;
+        object-fit: cover; background: #fbfbfd; opacity: 0; }
+      #receipt { top: 990px; height: 440px; }
+      #chart-vulns { top: 500px; height: 518px; }
+      .ref-tag { position: absolute; left: 160px;
+        font-family: "JetBrains Mono", monospace; font-size: 22px;
+        letter-spacing: 3px; color: #ff7a45; opacity: 0; }
+      #receipt-tag { left: 80px; top: 940px; }
+      #chart-tag { left: 80px; top: 450px; }
 
       /* act 1 */
       .rel-chip { position: absolute; top: 1080px; width: 268px; height: 104px;
@@ -71,9 +72,9 @@
       #price-unit { left: 80px; top: 905px; opacity: 0; }
 
       /* act 2 */
-      #bars-title { left: 80px; top: 820px; opacity: 0; }
+      #bars-title { left: 80px; top: 700px; opacity: 0; }
       .bar-row { position: absolute; left: 80px; width: 920px; height: 100px; opacity: 0; }
-      #bar1 { top: 890px; } #bar2 { top: 1010px; } #bar3 { top: 1130px; } #bar4 { top: 1250px; }
+      #bar1 { top: 790px; } #bar2 { top: 930px; }
       .bar-label { position: absolute; left: 0; top: 0;
         font-family: "JetBrains Mono", monospace; font-size: 25px; letter-spacing: 2px; color: #b6b6bd; }
       .bar-val { position: absolute; right: 0; top: -6px;
@@ -82,11 +83,11 @@
         background: #1c1c24; border-radius: 3px; }
       .bar-fill { position: absolute; left: 0; top: 0; height: 20px; border-radius: 3px;
         background: #4a4a56; transform-origin: left center; }
-      #bar3 .bar-fill, #bar4 .bar-fill { background: #ff7a45; }
-      #bar3 .bar-val, #bar4 .bar-val { color: #ff7a45; }
+      #bar1 .bar-fill { background: #ff7a45; }
+      #bar1 .bar-val { color: #ff7a45; }
 
       /* act 3 */
-      #gate { position: absolute; left: 140px; top: 1090px; width: 800px; height: auto;
+      #gate { position: absolute; left: 140px; top: 940px; width: 800px; height: auto;
         border: 3px solid #ff5c5c; border-radius: 16px; padding: 40px 42px;
         background: rgba(28,18,20,0.72); opacity: 0; }
       #gate .g-tag { font-family: "JetBrains Mono", monospace; font-size: 23px;
@@ -94,7 +95,7 @@
       #gate .g-head { font-weight: 800; font-size: 54px; color: #e8e8ea; letter-spacing: -0.5px; }
       #gate .g-sub { font-family: "JetBrains Mono", monospace; font-size: 25px;
         line-height: 1.5; color: #b6b6bd; margin-top: 16px; }
-      #lock { position: absolute; left: 50%; top: 1010px; margin-left: -40px; opacity: 0; }
+      #lock { position: absolute; left: 50%; top: 840px; margin-left: -40px; opacity: 0; }
       .ink { fill: none; stroke: #ff5c5c; stroke-width: 5; stroke-linecap: round; }
 
       /* captions - most Reel viewing is muted, so these carry the script */
@@ -132,30 +133,24 @@
           <div id="price-now" class="mono">$0.75</div>
           <div id="price-later" class="mono">$1.50</div>
           <div id="price-unit" class="label-xs">INTRODUCTORY</div>
-          <div id="receipt-tag" class="label-xs">SOURCE / BLOG.GOOGLE</div>
+          <div id="receipt-tag" class="ref-tag mono">SOURCE / BLOG.GOOGLE</div>
         </div>
       </div>
-      <img id="plate-cadence" class="plate" src="assets/images/plate_cadence.jpg"
-           data-start="1.1" data-duration="4.9" data-track-index="6" />
-      <img id="receipt" src="assets/receipts/source.jpg"
+      <img id="receipt" class="ref" src="assets/receipts/source.jpg"
            data-start="6.5" data-duration="5.6" data-track-index="7" />
 
       <!-- ACT 2 -->
       <div id="act2" class="clip" data-start="12.4" data-duration="10.6" data-track-index="8" data-layout-allow-overflow="true">
         <div id="act2-inner">
-          <div id="bars-title" class="label-xs">BENCHMARK / GEMINI 3.8 FLASH</div>
-          <div id="bar1" class="bar-row"><div class="bar-label mono">HLE-VERIFIED</div>
-            <div class="bar-val mono">54.9%</div><div class="bar-track"><div class="bar-fill" style="width:505px"></div></div></div>
+          <div id="bars-title" class="label-xs">MEASURED / GOOGLE DEEPMIND</div>
+          <div id="bar1" class="bar-row"><div class="bar-label mono">CHROME PATCHES</div>
+            <div class="bar-val mono">2.6x</div><div class="bar-track"><div class="bar-fill" style="width:828px"></div></div></div>
           <div id="bar2" class="bar-row"><div class="bar-label mono">CWE-BENCH PATCH</div>
             <div class="bar-val mono">47.2%</div><div class="bar-track"><div class="bar-fill" style="width:434px"></div></div></div>
-          <div id="bar3" class="bar-row"><div class="bar-label mono">VULNS FOUND</div>
-            <div class="bar-val mono">70%+</div><div class="bar-track"><div class="bar-fill" style="width:644px"></div></div></div>
-          <div id="bar4" class="bar-row"><div class="bar-label mono">CHROME PATCHES</div>
-            <div class="bar-val mono">2.6x</div><div class="bar-track"><div class="bar-fill" style="width:828px"></div></div></div>
         </div>
       </div>
-      <img id="plate-scan" class="plate" src="assets/images/plate_scan.jpg"
-           data-start="12.7" data-duration="9.8" data-track-index="9" />
+      <img id="chart-vulns" class="ref" src="assets/refs/chart_vulns.jpg"
+           data-start="12.7" data-duration="5.6" data-track-index="9" />
 
       <!-- ACT 3 -->
       <div id="act3" class="clip" data-start="22.8" data-duration="4.7" data-track-index="10" data-layout-allow-overflow="true">
@@ -170,8 +165,6 @@
           </div>
         </div>
       </div>
-      <img id="plate-gate" class="plate" src="assets/images/plate_gate.jpg"
-           data-start="22.9" data-duration="4.6" data-track-index="11" />
 
       <div id="cap0" class="clip caption mono" data-start="0.40" data-duration="0.78" data-track-index="20" data-layout-allow-overlap="true">GOOGLE JUST SHIPPED</div>
       <div id="cap1" class="clip caption mono" data-start="1.18" data-duration="0.88" data-track-index="20" data-layout-allow-overlap="true">THEIR THIRD FLASH</div>
@@ -220,7 +213,6 @@
       /* ===== ACT 1 ===== */
       tl.fromTo("#headline", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 0.15);
       tl.fromTo("#brandchip", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 0.55);
-      tl.fromTo("#plate-cadence", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out", transformOrigin: "center center" }, 1.15);
 
       tl.fromTo("#rel1", { opacity: 0, y: 22, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.28, ease: "back.out(2)" }, 1.5);
       tl.fromTo("#rel2", { opacity: 0, y: 22, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.28, ease: "back.out(2)" }, 2.0);
@@ -231,8 +223,6 @@
       /* clear for the price */
       tl.to("#headline", { opacity: 0, duration: 0.28, ease: "power1.in" }, 5.75);
       tl.to(".rel-chip", { opacity: 0, duration: 0.28, ease: "power1.in" }, 5.75);
-      tl.to("#plate-cadence", { opacity: 0, duration: 0.3, ease: "power1.in" }, 5.7);
-      tl.set("#plate-cadence", { opacity: 0 }, 6.0);
 
       tl.fromTo("#price-label", { opacity: 0 }, { opacity: 1, duration: 0.28, ease: "none" }, 6.15);
       tl.fromTo("#price-now", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.38, ease: "power2.out" }, 6.3);
@@ -254,27 +244,27 @@
       tl.set("#receipt", { opacity: 0 }, 12.1);
 
       /* ===== ACT 2 ===== */
-      tl.fromTo("#plate-scan", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out" }, 12.75);
-      tl.fromTo("#bars-title", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.3, ease: "power2.out" }, 12.8);
-      [["#bar1", 13.0], ["#bar2", 13.6]].forEach(function (b) {
-        tl.fromTo(b[0], { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" }, b[1]);
-        tl.fromTo(b[0] + " .bar-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.65, ease: "power2.out" }, b[1] + 0.12);
-        tl.fromTo(b[0] + " .bar-val", { opacity: 0 }, { opacity: 1, duration: 0.22, ease: "none" }, b[1] + 0.65);
-      });
-      tl.fromTo("#bar3", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" }, 14.4);
-      tl.fromTo("#bar3 .bar-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.85, ease: "power2.out" }, 14.55);
-      tl.fromTo("#bar3 .bar-val", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.32, ease: "back.out(2)", transformOrigin: "right center" }, 15.4);
-      tl.fromTo("#bar4", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" }, 18.25);
-      tl.fromTo("#bar4 .bar-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.95, ease: "power2.out" }, 18.4);
-      tl.fromTo("#bar4 .bar-val", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.32, ease: "back.out(2)", transformOrigin: "right center" }, 19.4);
+      /* the vulns claim is proved with Google's own chart, not a mood image */
+      tl.fromTo("#chart-tag", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "none" }, 12.7);
+      tl.fromTo("#chart-vulns", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 12.8);
+      tl.to("#chart-vulns", { opacity: 0, duration: 0.3, ease: "power1.in" }, 18.0);
+      tl.to("#chart-tag", { opacity: 0, duration: 0.3, ease: "power1.in" }, 18.0);
+      tl.set("#chart-vulns", { opacity: 0 }, 18.3);
+      tl.set("#chart-tag", { opacity: 0 }, 18.3);
+
+      /* the Chrome claim has no chart in the post, so it gets a designed bar */
+      tl.fromTo("#bars-title", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.3, ease: "power2.out" }, 18.35);
+      tl.fromTo("#bar1", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" }, 18.5);
+      tl.fromTo("#bar1 .bar-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.95, ease: "power2.out" }, 18.65);
+      tl.fromTo("#bar1 .bar-val", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.32, ease: "back.out(2)", transformOrigin: "right center" }, 19.5);
+      tl.fromTo("#bar2", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" }, 20.3);
+      tl.fromTo("#bar2 .bar-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "power2.out" }, 20.45);
+      tl.fromTo("#bar2 .bar-val", { opacity: 0 }, { opacity: 1, duration: 0.22, ease: "none" }, 21.1);
 
       tl.to("#act2-inner", { opacity: 0, duration: 0.3, ease: "power1.in" }, 22.5);
       tl.set("#act2-inner", { opacity: 0 }, 22.80);
-      tl.to("#plate-scan", { opacity: 0, duration: 0.3, ease: "power1.in" }, 22.4);
-      tl.set("#plate-scan", { opacity: 0 }, 22.5);
 
       /* ===== ACT 3 ===== */
-      tl.fromTo("#plate-gate", { opacity: 0, scale: 0.97 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out", transformOrigin: "center center" }, 22.95);
       tl.fromTo("#lock", { opacity: 0, y: -16, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.38, ease: "back.out(2)", transformOrigin: "center center" }, 23.05);
       tl.fromTo("#gate", { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.38, ease: "power3.out", transformOrigin: "center center" }, 23.2);
       tl.fromTo("#gate", { scale: 1 }, { scale: 1.03, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "center center" }, 24.6);

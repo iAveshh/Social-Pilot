@@ -59,54 +59,63 @@ the frame into a rainbow and destroy the palette in one shot.
 > Use their official press-kit SVG, or set the name as an Inter 800 wordmark.
 > Never substitute a lookalike.
 
-## Generated images
+## Imagery — reference only, never generic
 
-This is where a house style dies fastest. Every generated image obeys one
-prompt spine; **only the subject line changes**:
+**Every image on screen must carry information the narration cannot.** If it is
+mood, texture, or vibe, cut it. A macro photo of a circuit board says nothing a
+viewer could not have assumed; the vendor's own benchmark chart says 71.0%.
 
-```
-<subject — concrete, physical, singular>
-Near-black background, single soft overhead light source, deep shadows,
-shallow depth of field, desaturated near-monochrome with one faint warm amber
-edge highlight, fine film grain, macro product photography, 35mm.
-No text, no lettering, no numbers, no logos, no people, no hands,
-no 3D render look, no cartoon.
-```
+Ranked by value:
 
-Paper format swaps the first line for a cool neutral daylight key and keeps
-everything else.
+1. **Charts and tables from the source.** A benchmark chart with real numbers is
+   the single most valuable thing you can put on screen. It proves the claim,
+   carries data the voice-over cannot, and costs nothing.
+2. **The source page itself** — headline, date, byline. See Receipts below.
+3. **Product / UI screenshots** where the story is about a product surface.
+4. **Real brand marks** (above).
+5. **Generated imagery — default to none.** It is permitted only when a specific
+   physical object *is* the story and no capture of it exists. "Some servers" is
+   never that. Assume the answer is no.
 
-**And every image is matted.** Never full-bleed.
+This rule was learned the expensive way: an early cut carried three generated
+plates — server blades, a circuit trace, a latch — which looked handsome and
+informed nobody. Replacing them with one real chart from the announcement made
+the piece both cheaper and more credible.
+
+### Capturing reference material
+
+`node ai-news-reel/reference/capture-refs.mjs <url> <outDir> <spec>...` grabs
+specific elements — `img:2:name` for the nth substantial image, `sel:<css>:name`
+for a selector, `clip:x,y,w,h:name` for a region. It scrolls the page first so
+lazy-loaded charts actually render. Inspect what a page holds before choosing:
+`node ai-news-reel/reference/inspect-page.mjs <url>` lists headings, tables and
+images with their positions.
+
+### Treatment
+
+Every reference image is matted — **never full-bleed**:
 
 ```css
-.plate {
-  border: 3px solid #2c2c34;          /* #16161a on paper */
+.ref {
+  border: 3px solid #3a3a44;     /* #16161a on paper */
+  border-radius: 14px;           /* always round the corners */
   object-fit: cover;
-  filter: grayscale(0.25) contrast(1.05) brightness(0.92);
+  background: #fbfbfd;
 }
 ```
 
-The mat is what makes a generated image read as an editorial plate instead of
-stock. An unmatted AI image looks like an AI image.
+Leave captured charts and pages **bright**. A white chart in a near-black frame
+reads as evidence held up to the camera, and that contrast is the point — do not
+desaturate or dim it into the palette. Label it `SOURCE / <domain>` or
+`MEASURED / <org>` in accent above the mat, so the viewer knows whose number it
+is.
 
-Subjects that work: mechanism, material, instrument. Cables into a port,
-blades in a rack, a latch, a lens over machined grooves, solder filling a seam.
-Subjects that fail: anything abstract-futuristic, anything with implied text,
-anything with a person.
+Size for a phone. A chart narrower than ~85% of frame width is decoration; its
+axis labels have to be readable or it is not doing its job.
 
-> Security and failure topics trip provider content filters. Describe the
-> *instrument*, not the damage — a magnifier over grooves reads as "discovery"
-> without naming a flaw. Budget one retry and reword rather than resubmit.
-
-## Receipts
-
-A claim carries more weight when the source is on screen. Capture the actual
-page (free — `npx playwright`, see `ai-news-reel/reference/receipt.mjs`), crop
-to the headline block, and mat it like a plate with a `SOURCE / <domain>` label
-above it.
-
-Leave receipts bright on the dark format. A white page in a near-black frame
-reads as *holding up the document*, and that contrast is the point.
+**Quote the source exactly.** If the chart says 71.0%, the on-screen stat says
+71.0% — not "70%+". A designed stat that disagrees with the chart beside it
+destroys the credibility both were there to build.
 
 ## Captions
 

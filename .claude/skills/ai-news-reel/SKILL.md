@@ -209,12 +209,21 @@ makes a series look generic.
   screenshots the actual source page. Crop to the headline block, mat it, label
   it `SOURCE / <domain>`. Leave it bright against the dark ground — it reads as
   holding up the document. Nothing else buys this much credibility for $0.
-- **Image plates (paid, ~$0.04-0.05 each).** `image_selector` against the brand
-  image spine, one per act at most, always matted. Six stills beat one video
-  clip at this budget.
+- **Charts and tables from the source (free).** The highest-value image you can
+  put on screen. `node reference/inspect-page.mjs <url>` lists what a page holds;
+  `node reference/capture-refs.mjs <url> <dir> img:2:name ...` grabs specific
+  elements. Leave them bright, mat them, label them `MEASURED / <org>`.
+- **Generated imagery — default to none.** Only if a specific physical object
+  *is* the story and no capture exists. "Some servers" is never that.
 
-Keep them sparse. This format is strong *because* it's designed — plates are
-punctuation, never wallpaper.
+**Every image must carry information the narration cannot.** Mood, texture and
+vibe get cut. An early build of this format shipped three handsome generated
+plates that informed nobody; one real benchmark chart replaced all three and was
+both cheaper and more credible.
+
+And quote the source exactly — if the chart says 71.0%, the on-screen stat says
+71.0%, not "70%+". A designed stat contradicting the chart next to it destroys
+the credibility both were there to build.
 
 ### 7. Compose (free)
 Author `projects/<slug>/hyperframes/index.html` from the template, plus
@@ -262,7 +271,7 @@ by argument substitution when a skill is invoked with arguments.
 | Narration, `eleven-v3` (35-45 words) | USD 0.03 |
 | Music (free search) | USD 0.00 |
 | Captions, logos, receipts, SFX (all local) | USD 0.00 |
-| Image plates, `image_selector` | USD 0.04-0.05 each |
+| Reference captures (charts, source pages) | USD 0.00 |
 | Motion graphics + render (local) | USD 0.00 |
 
 **Two tiers, both real:**
@@ -270,7 +279,8 @@ by argument substitution when a skill is invoked with arguments.
 - **Lean — ~USD 0.03.** Narration + free music + vector devices. Add captions,
   logos, receipts and SFX and it is *still* USD 0.03, because all four are free.
   That combination is most of the quality.
-- **Full — ~USD 0.20-0.35.** The above plus 3-6 matted image plates.
+- **Full — still ~USD 0.03.** Reference captures are free too. The budget
+  only moves if a story genuinely needs generated imagery, which is rare.
 
 The budget is rarely the constraint here. **Spend the free wins first** — a reel
 with captions, a real vendor mark, a source receipt and sound design beats one
@@ -303,6 +313,8 @@ Two more from the captions/plates build:
 | `reference/full-stack-example.html` | Build 3 — everything: captions, logo chip, receipt, matted plates, SFX bed |
 | `reference/build-captions-and-sfx.py` | Transcript → caption chunks; synthesises + mixes the SFX bed |
 | `reference/receipt.mjs` | `node receipt.mjs <url> <out.png> [clipH]` — source-page capture |
+| `reference/inspect-page.mjs` | List a page's headings, tables and charts before choosing what to capture |
+| `reference/capture-refs.mjs` | Element-precise capture of charts/tables (`img:N:name`, `sel:<css>:name`, `clip:x,y,w,h:name`) |
 | `reference/measure-pitch.py` | Compare narration takes for monotone (F0 semitone variation) |
 | `reference/gotchas.md` | Ten failure modes, each one a lost render cycle |
 
