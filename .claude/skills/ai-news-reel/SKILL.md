@@ -57,8 +57,22 @@ one account, but pick a **diagram device that fits this story**:
 | Cost / scaling | A small box that grows | Curve climbing against a flat line |
 | Protocol / architecture | Nodes + connectors wiring up | Request/response hops along the wires |
 | Adoption / survey stat | A grid of dots (population) | Dots filling / splitting into segments |
+| Release / pricing | Version chips landing in cadence | The headline number **flipping** to a worse one |
+| Gated launch | — | A lock + bordered gate panel that slams shut |
 
 If the new video would look identical to the last one, change the device.
+
+Two built references, deliberately sharing zero devices:
+
+- `reference/composition-template.html` — sandbox container that ruptures, then
+  an incident chain with a travelling packet (`how-agents-work-reel`).
+- `reference/devices-example.html` — release chips landing in cadence, a price
+  that flips `$0.75 → $1.50` in red, four benchmark bars racing with only the
+  narrated two in accent, and a lock/gate close (`gemini-flash-reel`).
+
+**The rupture does not have to be a break.** In the second example it is a
+number turning against the viewer — same three-act shape, no broken container
+anywhere. Look for the turn the story already contains.
 
 ## Workflow
 

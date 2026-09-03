@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #0a0a0c; }
+      body { font-family: "Inter", sans-serif; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      .clip { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+      /* ---------- ambient ---------- */
+      #bg { background: radial-gradient(ellipse at 50% 34%, #15151c 0%, #0a0a0c 72%); }
+      #bg-glow { overflow: hidden; }
+      #bg-glow-inner {
+        position: absolute; left: 50%; top: 42%; width: 1000px; height: 1000px;
+        margin-left: -500px; margin-top: -500px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,122,69,0.13) 0%, rgba(255,122,69,0) 70%);
+        opacity: 0.7;
+      }
+      #bg-grid { overflow: hidden; }
+      #bg-grid-inner {
+        position: absolute; top: -80px; left: -80px; width: 1240px; height: 2080px;
+        background-image:
+          repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 64px),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 64px);
+      }
+      #console-feed { position: absolute; left: 24px; top: 52px; width: 230px; height: 200px; overflow: hidden; }
+      #console-feed-inner { font-family: "JetBrains Mono", monospace; font-size: 16px; line-height: 30px; color: #79797f; }
+      #console-feed-inner div { white-space: nowrap; }
+      #activity-dot-wrap { position: absolute; right: 64px; top: 72px; }
+      #activity-dot { width: 14px; height: 14px; border-radius: 50%; background: #ff7a45;
+        box-shadow: 0 0 12px 2px rgba(255,122,69,0.6); }
+
+      /* ---------- type ---------- */
+      #headline {
+        position: absolute; left: 80px; top: 330px; width: 920px;
+        font-weight: 800; font-size: 62px; line-height: 1.14; color: #e8e8ea; letter-spacing: -0.5px;
+      }
+      .label-xs {
+        position: absolute; font-family: "JetBrains Mono", monospace;
+        font-size: 22px; letter-spacing: 3px; color: #8f8f98;
+      }
+
+      /* ---------- act 1: cadence + price ---------- */
+      .rel-chip {
+        position: absolute; top: 700px; width: 268px; height: 104px;
+        border: 2px solid #3a3a44; border-radius: 10px; background: rgba(22,22,28,0.85);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-family: "JetBrains Mono", monospace; color: #c9c9ce; opacity: 0;
+      }
+      .rel-chip b { font-size: 30px; font-weight: 600; letter-spacing: 2px; }
+      .rel-chip i { font-style: normal; font-size: 18px; color: #79797f; letter-spacing: 2px; margin-top: 6px; }
+      #rel1 { left: 80px; }
+      #rel2 { left: 406px; }
+      #rel3 { left: 732px; border-color: #ff7a45; }
+      #rel3 b { color: #ff7a45; }
+
+      #price-label { left: 80px; top: 900px; opacity: 0; }
+      #price-now, #price-later {
+        position: absolute; left: 80px; top: 950px; width: 920px;
+        font-family: "JetBrains Mono", monospace; font-weight: 700;
+        font-size: 130px; letter-spacing: -2px; color: #e8e8ea;
+      }
+      #price-now { opacity: 0; }
+      #price-later { opacity: 0; color: #ff5c5c; }
+      #price-unit { left: 80px; top: 1140px; opacity: 0; }
+      #price-fine {
+        position: absolute; left: 80px; top: 1210px; width: 920px;
+        font-family: "JetBrains Mono", monospace; font-size: 26px; line-height: 1.5;
+        color: #9a9aa2; opacity: 0;
+      }
+
+      /* ---------- act 2: benchmark bars ---------- */
+      #bars-title { left: 80px; top: 620px; opacity: 0; }
+      .bar-row { position: absolute; left: 80px; width: 920px; height: 116px; opacity: 0; }
+      #bar1 { top: 720px; } #bar2 { top: 872px; } #bar3 { top: 1024px; } #bar4 { top: 1176px; }
+      .bar-label {
+        position: absolute; left: 0; top: 0;
+        font-family: "JetBrains Mono", monospace; font-size: 26px; letter-spacing: 2px; color: #b6b6bd;
+      }
+      .bar-val {
+        position: absolute; right: 0; top: -6px;
+        font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 44px;
+        color: #e8e8ea; opacity: 0;
+      }
+      .bar-track { position: absolute; left: 0; top: 56px; width: 920px; height: 22px;
+        background: #1c1c24; border-radius: 3px; }
+      .bar-fill { position: absolute; left: 0; top: 0; height: 22px; border-radius: 3px;
+        background: #4a4a56; transform-origin: left center; }
+      #bar3 .bar-fill, #bar4 .bar-fill { background: #ff7a45; }
+      #bar3 .bar-val, #bar4 .bar-val { color: #ff7a45; }
+
+      /* ---------- act 3: the gate ---------- */
+      #gate {
+        position: absolute; left: 140px; top: 800px; width: 800px; height: auto;
+        border: 3px solid #ff5c5c; border-radius: 16px; padding: 46px 44px;
+        background: rgba(28,18,20,0.65); opacity: 0;
+      }
+      #gate .g-tag {
+        font-family: "JetBrains Mono", monospace; font-size: 24px; letter-spacing: 4px;
+        color: #ff5c5c; margin-bottom: 26px;
+      }
+      #gate .g-head { font-weight: 800; font-size: 58px; color: #e8e8ea; letter-spacing: -0.5px; }
+      #gate .g-sub {
+        font-family: "JetBrains Mono", monospace; font-size: 26px; line-height: 1.55;
+        color: #b6b6bd; margin-top: 20px;
+      }
+      #lock { position: absolute; left: 50%; top: 640px; margin-left: -46px; opacity: 0; }
+      #tagline {
+        position: absolute; left: 80px; right: 80px; bottom: 210px; top: auto; height: auto;
+        font-family: "JetBrains Mono", monospace; font-size: 30px; letter-spacing: 2px;
+        color: #9a9aa2; text-align: center; opacity: 0;
+      }
+      .ink { fill: none; stroke: #ff5c5c; stroke-width: 5; stroke-linecap: round; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="27.5"
+         data-width="1080" data-height="1920" style="position: relative">
+
+      <div id="bg" class="clip" data-start="0" data-duration="27.5" data-track-index="0"></div>
+      <div id="bg-glow" class="clip" data-start="0" data-duration="27.5" data-track-index="1" data-layout-allow-overflow="true">
+        <div id="bg-glow-inner"></div>
+      </div>
+      <div id="bg-grid" class="clip" data-start="0" data-duration="27.5" data-track-index="2" data-layout-allow-overflow="true">
+        <div id="bg-grid-inner"></div>
+      </div>
+      <div id="console-feed" class="clip" data-start="0" data-duration="27.5" data-track-index="3"
+           data-layout-allow-overflow="true" data-layout-allow-occlusion="true" data-layout-allow-overlap="true">
+        <div id="console-feed-inner" class="mono">
+          <div>&gt; model: 3.8-flash</div>
+          <div>[ok] ctx 1M</div>
+          <div>&gt; bench: run</div>
+          <div>[ok] 54.9</div>
+          <div>&gt; model: 3.8-flash</div>
+          <div>[ok] ctx 1M</div>
+          <div>&gt; bench: run</div>
+          <div>[ok] 54.9</div>
+        </div>
+      </div>
+      <div id="activity-dot-wrap" class="clip" data-start="0" data-duration="27.5" data-track-index="4">
+        <div id="activity-dot"></div>
+      </div>
+
+      <!-- ACT 1 — cadence, then the price turns -->
+      <div id="act1" class="clip" data-start="0" data-duration="12.6" data-track-index="5" data-layout-allow-overflow="true">
+        <div id="act1-inner">
+          <div id="headline">GOOGLE SHIPPED THREE<br />MODELS IN SIX WEEKS.</div>
+
+          <div id="rel1" class="rel-chip"><b>3.6 FLASH</b><i>JUL</i></div>
+          <div id="rel2" class="rel-chip"><b>3.7 FLASH</b><i>AUG</i></div>
+          <div id="rel3" class="rel-chip"><b>3.8 FLASH</b><i>SEP 2</i></div>
+
+          <div id="price-label" class="label-xs">PRICE / 1M INPUT TOKENS</div>
+          <div id="price-now" class="mono">$0.75</div>
+          <div id="price-later" class="mono">$1.50</div>
+          <div id="price-unit" class="label-xs">INTRODUCTORY</div>
+          <div id="price-fine" class="mono">Reverts January 1, 2027. Output goes $3.75 to $7.50.</div>
+        </div>
+      </div>
+
+      <!-- ACT 2 — the benchmark run -->
+      <div id="act2" class="clip" data-start="12.4" data-duration="10.6" data-track-index="6" data-layout-allow-overflow="true">
+        <div id="act2-inner">
+          <div id="bars-title" class="label-xs">BENCHMARK / GEMINI 3.8 FLASH</div>
+
+          <div id="bar1" class="bar-row">
+            <div class="bar-label mono">HLE-VERIFIED</div><div class="bar-val mono">54.9%</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 505px"></div></div>
+          </div>
+          <div id="bar2" class="bar-row">
+            <div class="bar-label mono">CWE-BENCH PATCH</div><div class="bar-val mono">47.2%</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 434px"></div></div>
+          </div>
+          <div id="bar3" class="bar-row">
+            <div class="bar-label mono">VULNS FOUND</div><div class="bar-val mono">70%+</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 644px"></div></div>
+          </div>
+          <div id="bar4" class="bar-row">
+            <div class="bar-label mono">CHROME PATCHES</div><div class="bar-val mono">2.6x</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 828px"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACT 3 — the gate -->
+      <div id="act3" class="clip" data-start="22.8" data-duration="4.7" data-track-index="7" data-layout-allow-overflow="true">
+        <div id="act3-inner">
+          <div id="lock">
+            <svg width="92" height="104" viewBox="0 0 92 104">
+              <rect class="ink" x="14" y="44" width="64" height="48" rx="8" />
+              <path class="ink" d="M28 44V30a18 18 0 0 1 36 0v14" />
+            </svg>
+          </div>
+          <div id="gate">
+            <div class="g-tag mono">FAIRWIND PROGRAM</div>
+            <div class="g-head">You Have to Apply.</div>
+            <div class="g-sub mono">Flash Cyber ships to vetted defenders only.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tagline" class="clip" data-start="25.6" data-duration="1.9" data-track-index="8">
+        THE MODEL IS CHEAP. THE ACCESS ISN'T.
+      </div>
+
+      <audio id="narr" src="assets/audio/narration.mp3" data-start="0.4" data-duration="25.55"
+             data-track-index="10" data-volume="1"></audio>
+      <audio id="bgm" src="assets/music/bed.mp3" data-start="0" data-duration="27.5"
+             data-track-index="11" data-volume="1"></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      /* ambient */
+      tl.fromTo("#bg-grid-inner", { x: 0, y: 0 }, { x: -64, y: -64, duration: 4, ease: "none", repeat: 10 }, 0);
+      tl.fromTo("#bg-glow-inner", { scale: 1, opacity: 0.7 }, { scale: 1.08, opacity: 0.92, duration: 3.5, ease: "sine.inOut", yoyo: true, repeat: 10 }, 0);
+      tl.fromTo("#console-feed-inner", { y: 0 }, { y: -120, duration: 2.6, ease: "none", repeat: 12 }, 0);
+      tl.fromTo("#activity-dot", { opacity: 0.25, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 44 }, 0);
+
+      /* ===== ACT 1 ===== */
+      tl.fromTo("#headline", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.4);
+
+      /* three releases land fast — the cadence is the point */
+      tl.fromTo("#rel1", { opacity: 0, y: 24, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(2)" }, 1.5);
+      tl.fromTo("#rel2", { opacity: 0, y: 24, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(2)" }, 2.0);
+      tl.fromTo("#rel3", { opacity: 0, y: 24, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(2)" }, 2.5);
+      /* "Third. In six weeks." — punch the third chip */
+      tl.fromTo("#rel3", { scale: 1 }, { scale: 1.09, duration: 0.22, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "center center" }, 3.8);
+      tl.fromTo("#rel3", { scale: 1 }, { scale: 1.06, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "center center" }, 4.7);
+
+      /* the price */
+      tl.to("#headline", { opacity: 0, duration: 0.3, ease: "power1.in" }, 5.9);
+      tl.to(".rel-chip", { opacity: 0, duration: 0.3, ease: "power1.in" }, 5.9);
+      tl.fromTo("#price-label", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "none" }, 6.2);
+      tl.fromTo("#price-now", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 6.3);
+      tl.fromTo("#price-unit", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "none" }, 9.1);
+
+      /* RUPTURE — the number turns against you */
+      tl.to("#price-now", { opacity: 0, duration: 0.22, ease: "power1.in" }, 10.9);
+      tl.fromTo("#price-later", { opacity: 0, scale: 1.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power4.out", transformOrigin: "left center" }, 10.95);
+      tl.to("#price-unit", { opacity: 0, duration: 0.2, ease: "none" }, 10.95);
+      tl.fromTo("#price-fine", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 11.3);
+
+      tl.to("#act1-inner", { opacity: 0, duration: 0.35, ease: "power1.in" }, 12.0);
+      tl.set("#act1-inner", { opacity: 0 }, 12.6);
+
+      /* ===== ACT 2 — bars race ===== */
+      tl.fromTo("#bars-title", { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 12.6);
+      [["#bar1", 12.9], ["#bar2", 13.5]].forEach(function (b) {
+        tl.fromTo(b[0], { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, b[1]);
+        tl.fromTo(b[0] + " .bar-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "power2.out" }, b[1] + 0.15);
+        tl.fromTo(b[0] + " .bar-val", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "none" }, b[1] + 0.7);
+      });
+      /* the two the narrator actually calls out */
+      tl.fromTo("#bar3", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, 14.3);
+      tl.fromTo("#bar3 .bar-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "power2.out" }, 14.5);
+      tl.fromTo("#bar3 .bar-val", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)", transformOrigin: "right center" }, 15.4);
+      tl.fromTo("#bar3", { scale: 1 }, { scale: 1.02, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "left center" }, 15.4);
+
+      tl.fromTo("#bar4", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, 18.2);
+      tl.fromTo("#bar4 .bar-fill", { scaleX: 0 }, { scaleX: 1, duration: 1.0, ease: "power2.out" }, 18.4);
+      tl.fromTo("#bar4 .bar-val", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)", transformOrigin: "right center" }, 19.4);
+      tl.fromTo("#bar4", { scale: 1 }, { scale: 1.02, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "left center" }, 19.4);
+
+      tl.to("#act2-inner", { opacity: 0, duration: 0.35, ease: "power1.in" }, 22.4);
+      tl.set("#act2-inner", { opacity: 0 }, 23.0);
+
+      /* ===== ACT 3 — the gate slams ===== */
+      tl.fromTo("#lock", { opacity: 0, y: -18, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(2)", transformOrigin: "center center" }, 23.0);
+      tl.fromTo("#gate", { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out", transformOrigin: "center center" }, 23.15);
+      tl.fromTo("#gate", { scale: 1 }, { scale: 1.03, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1, transformOrigin: "center center" }, 24.6);
+      tl.fromTo("#tagline", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power1.out" }, 25.7);
+
+      /* audio */
+      tl.set("#bgm", { volume: 0.3 }, 0);
+      tl.to("#bgm", { volume: 0.14, duration: 0.5, ease: "power1.inOut" }, 0.3);
+      tl.to("#bgm", { volume: 0.3, duration: 0.6, ease: "power1.inOut" }, 25.6);
+      tl.to("#bgm", { volume: 0, duration: 0.9, ease: "power1.in" }, 26.6);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
