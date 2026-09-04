@@ -642,6 +642,55 @@ Tool rules:
 
 For custom, atelier, brand, launch, or hero work, read `skills/meta/taste-direction.md` before choosing a playbook. Carry its `taste_profile` into the proposal so later stages can preserve the design read, visual variance, motion intensity, information density, reference strategy, and anti-patterns.
 
+### Explanation videos → the `engaging-explainer` skill (BINDING)
+
+For any brief that is **an explanation video meant to be watched to the end** —
+YouTube explainers, "explain X", teaching a concept visually, video essays,
+breaking down a paper / article / launch, channel episodes — read
+**`.claude/skills/engaging-explainer/SKILL.md`** before writing the script.
+It covers any subject and any runtime from 60 seconds to 10+ minutes.
+
+It is a **creative contract layered on `animated-explainer`**, not a new pipeline:
+the stage gates still apply. What it adds is that engagement is **enforced
+mechanically instead of left to taste**:
+
+- `reference/engagement-model.md` — the measured research the format rests on.
+  Several findings are counterintuitive: **large curiosity gaps produce LOW
+  curiosity**, and **on-screen text duplicating narration measurably harms
+  comprehension (d = 0.87)** — the largest effect size in Mayer's set.
+- `reference/device-catalog.md` — story shape → signature device, so two
+  episodes on different topics cannot look the same.
+- `reference/visual-system.md` — the craft mechanics (four line weights, real
+  camera range, paper grain, three timing families, the type ramp, the **freeze
+  device**). These are engine knowledge and ARE reused across episodes; the
+  creative tokens are not.
+- `reference/production-pipeline.md` — the build layer: **measure the voice
+  rather than assuming a WPM**, diagnose provider 403s as tier gates before
+  retrying, the Remotion atelier staging traps, and check frames before
+  committing to a full render.
+- `reference/composition-scaffold.md` — the file architecture, and which
+  components carry forward versus which must be rewritten per topic.
+- `retention_lint.py` — **run at the scene_plan gate, before assets spend
+  anything.** It fails on a slow open, a missing attention event, a redundant
+  caption, no engineered peak, a detail revealed during motion, or an interrupt
+  gap that is too long.
+
+```bash
+python .claude/skills/engaging-explainer/retention_lint.py <project-slug>
+```
+
+The scene_plan must declare `attention_event`, `still_window`, `peak` and
+`display_text` per scene, and the script must carry `text` + measured
+`start_seconds` / `end_seconds` per section. Populate them honestly — a check
+that cannot actually compare anything now reports **ERROR**, because silently
+reporting OK while examining nothing is worse than having no check at all.
+
+Post-render, verify against the file that ships:
+
+```bash
+python .claude/skills/engaging-explainer/scripts/verify_render.py <project-slug>
+```
+
 ### Hand-drawn "doodle" animation → Ink Theater / Ink Puppet
 
 For any brief that wants a **hand-drawn ink doodle** look — "a sketch that comes to life", "a pencil / stick figure that walks or dances", "a little character that acts out the idea", whiteboard-doodle explainers — use the **Ink Theater** engine + **Ink Puppet** mocap system (`skills/creative/ink-theater.md`, `ink-theater/README.md`). It is a **style + reusable engine, not a new pipeline**: illustration / contraption pieces run on the `animation` pipeline; a mocap character (draws itself → walks / dances / waves via `InkPuppet.choreograph([...])`) runs on `character-animation`. Cross-tool entry points: **`/ink-art`** (create a vector doodle from scratch) and **`/animated-drawing`** (animate a *supplied* drawing with mocap — raster; `skills/creative/animated-drawing.md`). Never hand-tune character motion — the agent only chooses named mocap clips.
