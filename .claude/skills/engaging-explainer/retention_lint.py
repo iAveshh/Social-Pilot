@@ -239,6 +239,7 @@ def check_redundancy(scenes, script, rep):
 
     compared = 0
     hits = []
+    quoted = []
     for s in scenes:
         texts = [t for t in (s.get("display_text") or []) if t]
         if not texts:
@@ -255,7 +256,14 @@ def check_redundancy(scenes, script, rep):
         spoken_ng = _ngrams(spoken, REDUNDANCY_NGRAM)
         for t in texts:
             shared = _ngrams(_words(t), REDUNDANCY_NGRAM) & spoken_ng
-            if shared:
+            if shared and s.get("quotation") is True:
+                # A verbatim primary-source quotation shown while the voice
+                # reads it is the standard documentary device: the screen shows
+                # the DOCUMENT, which is the evidence, and the voice carries it.
+                # Mayer's redundancy result is about explanatory text mirroring
+                # narration, not about exhibiting a source. Recorded, not fatal.
+                quoted.append((s["id"], t[:48]))
+            elif shared:
                 hits.append((s["id"], t[:48], " ".join(next(iter(shared)))))
     if hits:
         for sid, text, phrase in hits[:8]:
@@ -263,6 +271,14 @@ def check_redundancy(scenes, script, rep):
                       f'{sid}: display text "{text}" repeats narration ("{phrase}...").',
                       "One channel per fact. If the voice says it, the screen shows the object "
                       "instead — graphics+narration beats graphics+narration+text (d=0.87).")
+    if quoted:
+        rep.warn("redundancy",
+                 f"{len(quoted)} scene(s) show a verbatim quotation the voice also reads: "
+                 f"{', '.join(q[0] for q in quoted)}.",
+                 "Deliberate: the screen exhibits the source document. Keep it to primary "
+                 "sources, and never use the flag for explanatory text.")
+    if hits:
+        pass
     elif compared == 0:
         rep.error("redundancy",
                   "No scene's display text could be matched against any spoken window — "

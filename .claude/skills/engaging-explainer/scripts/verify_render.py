@@ -164,20 +164,37 @@ def main() -> int:
         notes.append("Anchor phrases re-located in the rendered audio: " + "; ".join(
             f"{c['anchor']} {c['delta']:+.3f}s" for c in checks) + ".")
 
+    # The render_report schema is strict (additionalProperties: false) and names
+    # its fields precisely: `file_size_bytes`, not `size_bytes`, and `format` is
+    # required. Anything of our own goes under `metadata`, which is the only
+    # open object in the contract. Emitting a report the pipeline cannot store
+    # is the same class of defect as having no report at all.
+    fr = v.get("r_frame_rate", "0/1")
+    try:
+        num, den = fr.split("/")
+        fps_val = round(float(num) / float(den), 3)
+    except Exception:
+        fps_val = None
     report = {
         "version": "1.0",
         "outputs": [{
             "path": str(mp4),
-            "duration_seconds": round(dur, 3),
+            "format": mp4.suffix.lstrip(".") or "mp4",
+            "codec": v["codec_name"],
+            "audio_codec": a["codec_name"] if a else "none",
             "resolution": f"{v['width']}x{v['height']}",
-            "size_bytes": int(fmt["size"]),
+            "fps": fps_val,
+            "duration_seconds": round(dur, 3),
+            "file_size_bytes": int(fmt["size"]),
         }],
-        "sync_checks": checks,
         "verification_notes": notes,
-        "recommended_action": "review" if not issues else "revise",
+        "warnings": issues,
+        "metadata": {
+            "sync_checks": checks,
+            "sync_tolerance_s": SYNC_TOLERANCE_S,
+            "recommended_action": "review" if not issues else "revise",
+        },
     }
-    if issues:
-        report["issues"] = issues
     (art / "render_report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
 
     print(f"\nrender_report.json written — {len(issues)} issue(s)")

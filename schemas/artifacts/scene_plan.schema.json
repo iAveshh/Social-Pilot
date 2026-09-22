@@ -4,49 +4,164 @@
   "title": "Scene Plan",
   "description": "Ordered scene list produced by the Scene Planner agent.",
   "type": "object",
-  "required": ["version", "scenes"],
+  "required": [
+    "version",
+    "scenes"
+  ],
   "properties": {
-    "version": { "type": "string", "const": "1.0" },
-    "style_playbook": { "type": "string", "description": "Name of the active style playbook" },
+    "version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "style_playbook": {
+      "type": "string",
+      "description": "Name of the active style playbook"
+    },
     "scenes": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "type", "description", "start_seconds", "end_seconds"],
+        "required": [
+          "id",
+          "type",
+          "description",
+          "start_seconds",
+          "end_seconds"
+        ],
         "properties": {
-          "id": { "type": "string" },
+          "id": {
+            "type": "string"
+          },
           "type": {
             "type": "string",
-            "enum": ["talking_head", "broll", "animation", "character_scene", "diagram", "text_card", "transition", "generated", "screen_recording"]
+            "enum": [
+              "talking_head",
+              "broll",
+              "animation",
+              "character_scene",
+              "diagram",
+              "text_card",
+              "transition",
+              "generated",
+              "screen_recording"
+            ]
           },
-          "description": { "type": "string" },
-          "start_seconds": { "type": "number", "minimum": 0 },
-          "end_seconds": { "type": "number", "minimum": 0 },
-          "script_section_id": { "type": "string" },
-          "framing": { "type": "string" },
-          "movement": { "type": "string" },
-          "transition_in": { "type": "string" },
-          "transition_out": { "type": "string" },
-          "overlay_notes": { "type": "string" },
+          "description": {
+            "type": "string"
+          },
+          "start_seconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "end_seconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "script_section_id": {
+            "type": "string"
+          },
+          "framing": {
+            "type": "string"
+          },
+          "movement": {
+            "type": "string"
+          },
+          "transition_in": {
+            "type": "string"
+          },
+          "transition_out": {
+            "type": "string"
+          },
+          "overlay_notes": {
+            "type": "string"
+          },
           "shot_language": {
             "type": "object",
             "description": "Structured cinematography vocabulary for this scene",
             "properties": {
               "shot_size": {
                 "type": "string",
-                "enum": ["extreme_wide", "wide", "medium_wide", "medium", "medium_close", "close_up", "extreme_close_up", "over_shoulder", "insert", "establishing"]
+                "enum": [
+                  "extreme_wide",
+                  "wide",
+                  "medium_wide",
+                  "medium",
+                  "medium_close",
+                  "close_up",
+                  "extreme_close_up",
+                  "over_shoulder",
+                  "insert",
+                  "establishing"
+                ]
               },
               "camera_movement": {
                 "type": "string",
-                "enum": ["static", "pan_left", "pan_right", "tilt_up", "tilt_down", "dolly_in", "dolly_out", "tracking_left", "tracking_right", "crane_up", "crane_down", "handheld", "steadicam", "whip_pan", "orbital", "zoom_in", "zoom_out", "rack_focus"]
+                "enum": [
+                  "static",
+                  "pan_left",
+                  "pan_right",
+                  "tilt_up",
+                  "tilt_down",
+                  "dolly_in",
+                  "dolly_out",
+                  "tracking_left",
+                  "tracking_right",
+                  "crane_up",
+                  "crane_down",
+                  "handheld",
+                  "steadicam",
+                  "whip_pan",
+                  "orbital",
+                  "zoom_in",
+                  "zoom_out",
+                  "rack_focus"
+                ]
               },
-              "lens_mm": { "type": "integer", "enum": [14, 24, 35, 50, 85, 135, 200] },
+              "lens_mm": {
+                "type": "integer",
+                "enum": [
+                  14,
+                  24,
+                  35,
+                  50,
+                  85,
+                  135,
+                  200
+                ]
+              },
               "lighting_key": {
                 "type": "string",
-                "enum": ["high_key", "low_key", "natural", "golden_hour", "blue_hour", "tungsten_warm", "neon", "silhouette", "rim_lit", "volumetric", "overcast_soft"]
+                "enum": [
+                  "high_key",
+                  "low_key",
+                  "natural",
+                  "golden_hour",
+                  "blue_hour",
+                  "tungsten_warm",
+                  "neon",
+                  "silhouette",
+                  "rim_lit",
+                  "volumetric",
+                  "overcast_soft"
+                ]
               },
-              "depth_of_field": { "type": "string", "enum": ["shallow", "medium", "deep"] },
-              "color_temperature": { "type": "string", "enum": ["cool", "neutral", "warm", "mixed"] }
+              "depth_of_field": {
+                "type": "string",
+                "enum": [
+                  "shallow",
+                  "medium",
+                  "deep"
+                ]
+              },
+              "color_temperature": {
+                "type": "string",
+                "enum": [
+                  "cool",
+                  "neutral",
+                  "warm",
+                  "mixed"
+                ]
+              }
             },
             "additionalProperties": false
           },
@@ -56,7 +171,18 @@
           },
           "narrative_role": {
             "type": "string",
-            "enum": ["establish_context", "introduce_subject", "build_tension", "deliver_payload", "transition", "emotional_beat", "evidence", "comparison", "resolution", "call_to_action"],
+            "enum": [
+              "establish_context",
+              "introduce_subject",
+              "build_tension",
+              "deliver_payload",
+              "transition",
+              "emotional_beat",
+              "evidence",
+              "comparison",
+              "resolution",
+              "call_to_action"
+            ],
             "description": "What role this scene plays in the narrative structure"
           },
           "information_role": {
@@ -73,25 +199,42 @@
             "description": "Character-specific acting beats for rigged character animation scenes",
             "items": {
               "type": "object",
-              "required": ["character_id", "action_sequence"],
+              "required": [
+                "character_id",
+                "action_sequence"
+              ],
               "properties": {
-                "character_id": { "type": "string" },
-                "emotion": { "type": "string" },
+                "character_id": {
+                  "type": "string"
+                },
+                "emotion": {
+                  "type": "string"
+                },
                 "action_sequence": {
                   "type": "array",
-                  "items": { "type": "string" },
+                  "items": {
+                    "type": "string"
+                  },
                   "minItems": 1
                 },
-                "dialogue": { "type": "string" },
-                "target": { "type": "string" },
-                "notes": { "type": "string" }
+                "dialogue": {
+                  "type": "string"
+                },
+                "target": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                }
               },
               "additionalProperties": false
             }
           },
           "texture_keywords": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "Visual texture descriptors: grain, clean, anamorphic, gritty, ethereal, etc."
           },
           "required_assets": {
@@ -99,19 +242,98 @@
             "items": {
               "type": "object",
               "properties": {
-                "type": { "type": "string" },
-                "description": { "type": "string" },
-                "source": { "type": "string", "enum": ["generate", "source", "provided", "record"] }
+                "type": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string",
+                  "enum": [
+                    "generate",
+                    "source",
+                    "provided",
+                    "record"
+                  ]
+                }
               },
-              "required": ["type", "description", "source"]
+              "required": [
+                "type",
+                "description",
+                "source"
+              ]
             }
+          },
+          "attention_event": {
+            "type": "string",
+            "enum": [
+              "onset",
+              "cessation",
+              "freeze",
+              "none"
+            ],
+            "description": "The qualitative motion event that resets attention in this scene. Quantitative changes (acceleration, a gradual ramp) do not capture attention; commencement and cessation of motion do. Required by the engaging-explainer retention lint."
+          },
+          "still_window": {
+            "type": "boolean",
+            "description": "True if the frame is still enough for fine detail to be perceived. Feature changes on moving objects are literally not seen (motion silencing), so figures and fine labels may only land when this is true."
+          },
+          "peak": {
+            "type": "boolean",
+            "default": false,
+            "description": "The single engineered maximum of the piece — largest scale, full saturation, total freeze, loudest sound. Exactly one scene may set this. Supersedes hero_moment for engagement-linted pieces."
+          },
+          "display_text": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Every on-screen string in this scene, one entry per element. Checked against the narration: text duplicating what the voice says measurably harms comprehension (Mayer redundancy, d=0.87)."
+          },
+          "imagery": {
+            "type": "array",
+            "description": "External assets appearing in this scene. Every one must declare a treatment — a raw photograph in a drawn world reads as two unrelated pieces glued together.",
+            "items": {
+              "type": "object",
+              "required": [
+                "src",
+                "treatment"
+              ],
+              "properties": {
+                "src": {
+                  "type": "string"
+                },
+                "treatment": {
+                  "type": "string",
+                  "enum": [
+                    "duotone",
+                    "halftone",
+                    "lineart",
+                    "posterize",
+                    "none"
+                  ]
+                },
+                "evidence_type": {
+                  "type": "string",
+                  "description": "Why imagery beats a drawing here — abstract mechanisms and data should be drawn, not photographed."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "quotation": {
+            "type": "boolean",
+            "description": "True when display_text is a verbatim primary-source quotation the narration also reads. Exempts that scene from the redundancy check (downgraded to a recorded warning): showing the document is the evidence. Never set it for explanatory text."
           }
         },
         "additionalProperties": false
       },
       "minItems": 1
     },
-    "metadata": { "type": "object" }
+    "metadata": {
+      "type": "object"
+    }
   },
   "additionalProperties": false
 }

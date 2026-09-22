@@ -677,7 +677,13 @@ mechanically instead of left to taste**:
 
 ```bash
 python .claude/skills/engaging-explainer/retention_lint.py <project-slug>
+python .claude/skills/engaging-explainer/craft_lint.py     <project-slug>
 ```
+
+Run **both**. `retention_lint` checks whether the piece is structured to hold
+attention; `craft_lint` checks whether it is built to be worth looking at —
+camera range, depth planes, light, secondary motion. A piece can pass the first
+perfectly and still render as slides.
 
 The scene_plan must declare `attention_event`, `still_window`, `peak` and
 `display_text` per scene, and the script must carry `text` + measured
@@ -690,6 +696,47 @@ Post-render, verify against the file that ships:
 ```bash
 python .claude/skills/engaging-explainer/scripts/verify_render.py <project-slug>
 ```
+
+### Anything meant to reach beyond an existing audience → `virality-research`
+
+For any piece intended to travel — a launch video, a channel episode, anything
+posted to a public feed — and for any question about what makes content go
+viral, read **`.claude/skills/virality-research/SKILL.md`**.
+
+It is a **live harvest plus a gate**, not a tip sheet. It traverses the web on
+demand, grades what comes back by the quality of its evidence, keeps it in a
+corpus that ages out **per grade** (a platform's ranking behaviour rots in
+months; a result about human arousal does not rot at all), and then requires
+every in-scope binding finding to be **applied or refused on the record** before
+the piece ships.
+
+```bash
+python .claude/skills/virality-research/corpus.py audit          # start of every production
+python .claude/skills/virality-research/harvest.py plan --platform youtube --format long_form
+python .claude/skills/virality-research/virality_lint.py <project-slug>
+```
+
+The rule that governs it: **a finding may change HOW something is said; it may
+never change WHAT is true, what the piece argues, or whether the title is
+honest.** A finding that can only be satisfied by overstating the content is
+refused, with that as the recorded reason.
+
+Two things it will tell you that contradict most advice on the subject:
+
+- **Almost all sharing cascades die after one hop.** Reach cannot be engineered
+  for an individual piece, so do not make it the objective — design the one
+  deliberate share you can actually earn.
+- **Most published virality advice is derived from winners only** and has no
+  denominator. The corpus demotes any claim without a stated contrast class,
+  however respectable its source. In the current corpus that leaves **three
+  binding findings out of ten**.
+
+`virality_packet.json` is written at the **proposal** stage, never after the
+render — title and share trigger are structural decisions, and deciding them
+late leaves overstatement as the only available tool.
+
+Where it disagrees with `engaging-explainer`: **structure follows the engagement
+model, metadata follows this one.**
 
 ### Hand-drawn "doodle" animation → Ink Theater / Ink Puppet
 
